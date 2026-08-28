@@ -84,4 +84,100 @@ public class LeetCode3700 {
         return res.toString();
     }
 
+    /**
+     * 3734. 大于目标字符串的最小字典序回文排列
+     * @param s
+     * @param target
+     * @return
+     */
+    public String lexPalindromicPermutation(String s, String target) {
+        int n = s.length();
+        // 特殊情况：长度为 1
+        if (n == 1) {
+            return s.compareTo(target) > 0 ? s : "";
+        }
+
+        // 统计每个字符的出现次数
+        int[] cnt = new int[26];
+        for (char c : s.toCharArray()) {
+            cnt[c - 'a']++;
+        }
+
+        // 检查是否能构成回文串，并记录奇数个的字符
+        String oddChar = "";
+        for (int i = 0; i < 26; i++) {
+            if ((cnt[i] & 1) == 1) {
+                // 超过一个字符出现奇数次，无法构成回文
+                if (oddChar != "") {
+                    return "";
+                }
+                oddChar = String.valueOf((char) ('a' + i));
+            }
+            // 只需要一半的字符来构造左半部分
+            cnt[i] >>= 1;
+        }
+
+        StringBuilder prefix = new StringBuilder();
+        // 贪心构造左半部分的每一位
+        for (int i = 0; i < n / 2; i++) {
+            boolean found = false;
+            // 尝试放置字典序最小的字符
+            for (int j = 0; j < 26; j++) {
+                if (cnt[j] == 0) {
+                    continue;
+                }
+                cnt[j]--;
+                if (lexPalindromicPermutationCheck(prefix.toString(), (char) ('a' + j), cnt, oddChar, target)) {
+                    // 如果构造的回文串大于target，则选择该字符
+                    prefix.append((char) ('a' + j));
+                    found = true;
+                    break;
+                } else {
+                    // 不满足条件，恢复计数
+                    cnt[j]++;
+                }
+            }
+            if (!found) {
+                return "";
+            }
+            // prefix已经大于target
+            if (prefix.charAt(i) > target.charAt(i)) {
+                StringBuilder left = new StringBuilder(prefix);
+                for (int j = 0; j < 26; j++) {
+                    if (cnt[j] == 0) {
+                        continue;
+                    }
+                    left.append(String.valueOf((char) ('a' + j)).repeat(cnt[j]));
+                }
+                String palindrome = left.toString() + oddChar + left.reverse().toString();
+                return palindrome;
+            }
+        }
+
+        String palindrome = prefix.toString() + oddChar + prefix.reverse().toString();
+        return palindrome;
+    }
+
+    /**
+     * 检查能否构成满足要求的字符串
+     * @param prefix
+     * @param c
+     * @param cnt
+     * @param oddChar
+     * @param target
+     * @return
+     */
+    private boolean lexPalindromicPermutationCheck(String prefix, char c, int[] cnt, String oddChar, String target) {
+        StringBuilder left = new StringBuilder(prefix);
+        left.append(c);
+        for (int i = 25; i >= 0; i--) {
+            if (cnt[i] == 0) {
+                continue;
+            }
+            left.append(String.valueOf((char) ('a' + i)).repeat(cnt[i]));
+        }
+        String palindrome = left.toString() + oddChar + left.reverse().toString();
+        return palindrome.compareTo(target) > 0;
+    }
+
 }
