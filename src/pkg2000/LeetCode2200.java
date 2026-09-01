@@ -5,6 +5,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.PriorityQueue;
 
+import util.TreeNode;
+
 public class LeetCode2200 {
 
     /**
@@ -103,6 +105,15 @@ public class LeetCode2200 {
         }
 
         return dist;
+    }
+
+    /**
+     * 2236. 判断根结点是否等于子结点之和
+     * @param root
+     * @return
+     */
+    public boolean checkTree(TreeNode root) {
+        return root.val == root.left.val + root.right.val;
     }
 
 }
