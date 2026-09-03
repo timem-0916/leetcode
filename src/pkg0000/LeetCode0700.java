@@ -46,6 +46,95 @@ public class LeetCode0700 {
     }
 
     /**
+     * 720. 词典中最长的单词
+     * @param words
+     * @return
+     */
+    public String longestWord(String[] words) {
+        // 1. 初始化字典树，并将所有单词插入到树中
+        Trie trie = new Trie();
+        for (String word : words) {
+            trie.insert(word);
+        }
+
+        // 2. 遍历所有单词，寻找满足条件的最长单词
+        String longest = "";
+        for (String word : words) {
+            // 核心判断：检查当前单词的每一个前缀是否都在字典树中
+            if (trie.search(word)) {
+                // 如果满足条件，再比较长度和字典序：
+                // 1. 长度更长，则更新答案
+                // 2. 长度相等，但字典序更小（compareTo < 0），也更新答案
+                if (word.length() > longest.length() || (word.length() == longest.length() && word.compareTo(longest) < 0)) {
+                    longest = word;
+                }
+            }
+        }
+        return longest;
+    }
+
+    /**
+     * 字典树（Trie）实现
+     */
+    class Trie {
+        // 存储子节点的数组，长度为26，对应26个小写英文字母
+        Trie[] children;
+        // 标记当前节点是否是一个单词的结尾
+        boolean isEnd;
+
+        public Trie() {
+            children = new Trie[26];
+            isEnd = false;
+        }
+
+        /**
+         * 将单词插入到字典树中
+         * @param word
+         */
+        public void insert(String word) {
+            // 从根节点开始
+            Trie node = this;
+            for (int i = 0; i < word.length(); i++) {
+                char c = word.charAt(i);
+                // 计算字符对应的数组下标 (0~25)
+                int idx = c - 'a';
+
+                // 如果当前路径上的节点不存在，则创建新节点
+                if (node.children[idx] == null) {
+                    node.children[idx] = new Trie();
+                }
+                // 移动到下一个节点
+                node = node.children[idx];
+            }
+            // 单词遍历完毕，在最后一个节点打上结束标记
+            node.isEnd = true;
+        }
+
+        /**
+         * 检查一个单词是否由字典中的单词逐步添加一个字母组成
+         * 【核心逻辑】：不仅要求单词本身存在，还要求路径上的【每一个前缀节点】都是单词的结尾
+         * @param word
+         * @return
+         */
+        public boolean search(String word) {
+            Trie node = this;
+            for (int i = 0; i < word.length(); i++) {
+                char c = word.charAt(i);
+                int idx = c - 'a';
+                // 如果子节点不存在，或者子节点不是一个单词的结尾，直接返回 false
+                // 例如查找 "world"，如果 "worl" 不在词典中（即 !isEnd），则 "world" 不合法
+                if (node.children[idx] == null || !node.children[idx].isEnd) {
+                    return false;
+                }
+                // 继续向下匹配
+                node = node.children[idx];
+            }
+            // 循环结束说明所有前缀都存在，最后确认当前节点确实是单词结尾
+            return node != null && node.isEnd;
+        }
+    }
+
+    /**
      * 731. 我的日程安排表 II
      * MyCalendarTwo
      */
