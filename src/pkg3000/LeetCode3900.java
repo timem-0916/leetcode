@@ -25,4 +25,28 @@ public class LeetCode3900 {
         }
         return -1;
     }
+
+    /**
+     * 3904. 最小稳定下标 II
+     * @param nums
+     * @param k
+     * @return
+     */
+    public int firstStableIndexII(int[] nums, int k) {
+        int n = nums.length;
+        int[] min = new int[n];
+        min[n - 1] = nums[n - 1];
+        for (int i = n - 2; i >= 0; i--) {
+            min[i] = Math.min(min[i + 1], nums[i]);
+        }
+
+        for (int i = 0, curMax = -1; i < n; i++) {
+            curMax = Math.max(curMax, nums[i]);
+            int curMin = min[i];
+            if (curMax - curMin <= k) {
+                return i;
+            }
+        }
+        return -1;
+    }
 }
