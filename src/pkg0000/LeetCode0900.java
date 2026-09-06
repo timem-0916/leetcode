@@ -10,27 +10,19 @@ public class LeetCode0900 {
      */
     public int distinctSubseqII(String s) {
         final int MOD = 1000000007;
-        int[] last = new int[26];
-        Arrays.fill(last, -1);
-
+        int[] g = new int[26];
         int n = s.length();
-        // f[i] 表示以 s[i] 为最后一个字符的子序列的数目
-        int[] f = new int[n];
-        Arrays.fill(f, 1);
         for (int i = 0; i < n; i++) {
+            int total = 1;
             for (int j = 0; j < 26; j++) {
-                if (last[j] != -1) {
-                    f[i] = (f[i] + f[last[j]]) % MOD;
-                }
+                total = (total + g[j]) % MOD;
             }
-            last[s.charAt(i) - 'a'] = i;
+            g[s.charAt(i) - 'a'] = total;
         }
 
         int ans = 0;
         for (int i = 0; i < 26; i++) {
-            if (last[i] != -1) {
-                ans = (ans + f[last[i]]) % MOD;
-            }
+            ans = (ans + g[i]) % MOD;
         }
         return ans;
     }
