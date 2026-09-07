@@ -3,6 +3,103 @@ package pkg0000;
 import util.TreeNode;
 
 public class LeetCode0400 {
+    // 将最高位的二进制位编号作为常量，避免魔法数字
+    static final int HIGH_BIT = 30;
+
+    /**
+     * 421. 数组中两个数的最大异或值
+     * @param nums
+     * @return
+     */
+    public int findMaximumXOR(int[] nums) {
+        int n = nums.length;
+        // 将字典树的根节点作为局部变量，不占用类的成员空间
+        Trie root = new Trie();
+        int x = 0;
+
+        for (int i = 1; i < n; i++) {
+            // 将 nums[i-1] 放入字典树，此时 nums[0 .. i-1] 都在字典树中
+            add(root, nums[i - 1]);
+            // 将 nums[i] 看作 ai，找出最大的 x 更新答案
+            x = Math.max(x, check(root, nums[i]));
+        }
+
+        return x;
+    }
+
+    /**
+     * 将数字 num 添加到字典树中
+     * @param root 字典树的根节点
+     * @param num 要添加的数字
+     */
+    private void add(Trie root, int num) {
+        Trie cur = root;
+        // 从最高位向最低位遍历
+        for (int k = HIGH_BIT; k >= 0; k--) {
+            int bit = (num >> k) & 1;
+            if (bit == 0) {
+                if (cur.left == null) {
+                    cur.left = new Trie();
+                }
+                cur = cur.left;
+            } else {
+                if (cur.right == null) {
+                    cur.right = new Trie();
+                }
+                cur = cur.right;
+            }
+        }
+    }
+
+    /**
+     * 在字典树中查找与 num 异或能得到的最大值
+     * @param root 字典树的根节点
+     * @param num 当前要参与异或的数字
+     * @return 异或得到的最大值
+     */
+    private int check(Trie root, int num) {
+        Trie cur = root;
+        int x = 0;
+        // 从最高位向最低位遍历，贪心地寻找与当前位相反的节点
+        for (int k = HIGH_BIT; k >= 0; k--) {
+            int bit = (num >> k) & 1;
+            if (bit == 0) {
+                // a_i 的第 k 个二进制位为 0，应当往表示 1 的子节点 right 走
+                if (cur.right != null) {
+                    cur = cur.right;
+                    // 该位异或结果为 1
+                    x = x << 1 | 1;
+                } else {
+                    cur = cur.left;
+                    // 该位异或结果为 0
+                    x = x << 1;
+                }
+            } else {
+                // a_i 的第 k 个二进制位为 1，应当往表示 0 的子节点 left 走
+                if (cur.left != null) {
+                    cur = cur.left;
+                    // 该位异或结果为 1
+                    x = x << 1 | 1;
+                } else {
+                    cur = cur.right;
+                    // 该位异或结果为 0
+                    x = x << 1;
+                }
+            }
+        }
+        return x;
+    }
+
+    /**
+     * 字典树节点类
+     * Trie
+     */
+    class Trie {
+        // 左子树指向表示 0 的子节点
+        Trie left = null;
+        // 右子树指向表示 1 的子节点
+        Trie right = null;
+    }
 
     /**
      * 440. 字典序的第K小数字
