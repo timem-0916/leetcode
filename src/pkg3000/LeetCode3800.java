@@ -2,6 +2,15 @@ package pkg3000;
 
 public class LeetCode3800 {
     /**
+     * 3870. 统计范围内的逗号
+     * @param n
+     * @return
+     */
+    public int countCommas(int n) {
+        return Math.max(0, n - 999);
+    }
+
+    /**
      * 3875. 构造奇偶一致的数组 I
      * @param nums1
      * @return
