@@ -11,21 +11,51 @@ public class LeetCode0600 {
      * @return
      */
     public TreeNode trimBST(TreeNode root, int low, int high) {
+        // 1. 寻找新的根节点：
+        // 循环跳过那些不在 [low, high] 范围内的根节点。
+        // 如果当前根节点值小于 low，说明其左子树的所有节点也都小于 low，因此直接向右子树寻找；
+        // 如果当前根节点值大于 high，说明其右子树的所有节点也都大于 high，因此直接向左子树寻找。
+        while (root != null && (root.val < low || root.val > high)) {
+            if (root.val < low) {
+                root = root.right;
+            } else {
+                root = root.left;
+            }
+        }
+
+        // 如果整棵树都不在范围内，直接返回 null
         if (root == null) {
             return null;
         }
-        if (root.val < low) {
-            // 当前节点的值小于 low，说明当前节点及其左子树都不符合要求，直接返回右子树
-            return trimBST(root.right, low, high);
-        } else if (root.val > high) {
-            // 当前节点的值大于 high，说明当前节点及其右子树都不符合要求，直接返回左子树
-            return trimBST(root.left, low, high);
-        } else {
-            // 当前节点的值在 [low, high] 范围内，保留当前节点，递归处理左右子树
-            root.left = trimBST(root.left, low, high);
-            root.right = trimBST(root.right, low, high);
-            return root;
+
+        // 2. 修剪左子树：
+        // 遍历左子树，寻找并剔除值小于 low 的节点。
+        // 因为这是 BST，如果 node.left.val < low，那么 node.left 的左子树肯定也都小于 low，
+        // 所以直接将 node.left 指向 node.left.right（即保留其右子树部分），然后继续检查新的 node.left。
+        // 如果 node.left.val >= low，说明该节点合法，继续向左下遍历。
+        for (TreeNode node = root; node.left != null; ) {
+            if (node.left.val < low) {
+                node.left = node.left.right;
+            } else {
+                node = node.left;
+            }
         }
+
+        // 3. 修剪右子树：
+        // 遍历右子树，寻找并剔除值大于 high 的节点。
+        // 同理，如果 node.right.val > high，那么 node.right 的右子树肯定也都大于 high，
+        // 所以直接将 node.right 指向 node.right.left（即保留其左子树部分），然后继续检查新的 node.right。
+        // 如果 node.right.val <= high，说明该节点合法，继续向右下遍历。
+        for (TreeNode node = root; node.right != null; ) {
+            if (node.right.val > high) {
+                node.right = node.right.left;
+            } else {
+                node = node.right;
+            }
+        }
+
+        // 返回修剪后的根节点
+        return root;
     }
 
     /**
