@@ -4,6 +4,31 @@ import util.TreeNode;
 
 public class LeetCode0600 {
     /**
+     * 669. 修剪二叉搜索树
+     * @param root
+     * @param low
+     * @param high
+     * @return
+     */
+    public TreeNode trimBST(TreeNode root, int low, int high) {
+        if (root == null) {
+            return null;
+        }
+        if (root.val < low) {
+            // 当前节点的值小于 low，说明当前节点及其左子树都不符合要求，直接返回右子树
+            return trimBST(root.right, low, high);
+        } else if (root.val > high) {
+            // 当前节点的值大于 high，说明当前节点及其右子树都不符合要求，直接返回左子树
+            return trimBST(root.left, low, high);
+        } else {
+            // 当前节点的值在 [low, high] 范围内，保留当前节点，递归处理左右子树
+            root.left = trimBST(root.left, low, high);
+            root.right = trimBST(root.right, low, high);
+            return root;
+        }
+    }
+
+    /**
      * 687. 最长同值路径
      * @param root
      * @return
