@@ -1,5 +1,7 @@
 package pkg0000;
 
+import java.util.Arrays;
+
 public class LeetCode0100 {
     /**
      * 115. 不同的子序列
@@ -31,6 +33,32 @@ public class LeetCode0100 {
         }
 
         return (int) dp[n][m];
+    }
+
+    /**
+     * 135. 分发糖果
+     * @param ratings
+     * @return
+     */
+    public int candy(int[] ratings) {
+        int n = ratings.length;
+        int[] candies = new int[n];
+        Arrays.fill(candies, 1);
+
+        // 比左边评分高，就比左边多一个糖果
+        for (int i = 1; i < n; i++) {
+            if (ratings[i] > ratings[i - 1]) {
+                candies[i] = candies[i - 1] + 1;
+            }
+        }
+        // 比右边评分高，也要比右边多至少一个糖果
+        for (int i = n - 2; i >= 0; i--) {
+            if (ratings[i] > ratings[i + 1]) {
+                candies[i] = Math.max(candies[i], candies[i + 1] + 1);
+            }
+        }
+
+        return Arrays.stream(candies).sum();
     }
 
 }
