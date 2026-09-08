@@ -1,5 +1,7 @@
 package pkg0000;
 
+import java.util.Arrays;
+
 import util.TreeNode;
 
 public class LeetCode0400 {
@@ -201,5 +203,28 @@ public class LeetCode0400 {
         }
 
         return root;
+    }
+
+    /**
+     * 494. 目标和
+     * @param nums
+     * @param target
+     * @return
+     */
+    public int findTargetSumWays(int[] nums, int target) {
+        int n = nums.length;
+        int[][] dp = new int[n][2001];
+        dp[0][1000 + nums[0]] += 1;
+        dp[0][1000 - nums[0]] += 1;
+        for (int i = 1; i < n; i++) {
+            for (int j = 0; j <= 2000; j++) {
+                if (dp[i - 1][j] == 0) {
+                    continue;
+                }
+                dp[i][j + nums[i]] += dp[i - 1][j];
+                dp[i][j - nums[i]] += dp[i - 1][j];
+            }
+        }
+        return dp[n - 1][1000 + target];
     }
 }
