@@ -1,6 +1,25 @@
 package pkg0000;
 
 public class LeetCode0000 {
+
+    /**
+     * 11. 盛最多水的容器
+     * @param height
+     * @return
+     */
+    public int maxArea(int[] height) {
+        int n = height.length, l = 0, r = n - 1, max = 0;
+        while (l < r) {
+            max = Math.max(max, (r - l) * Math.min(height[l], height[r]));
+            if (height[l] <= height[r]) {
+                l++;
+            } else {
+                r--;
+            }
+        }
+        return max;
+    }
+
     /**
      * 14. 最长公共前缀
      * @param strs
