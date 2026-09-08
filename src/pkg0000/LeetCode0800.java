@@ -32,4 +32,39 @@ public class LeetCode0800 {
         }
         return true;
     }
+
+    /**
+     * 860. 柠檬水找零
+     * @param bills
+     * @return
+     */
+    public boolean lemonadeChange(int[] bills) {
+        // cnt[0] -> 5, cnt[1] -> 10, cnt[2] -> 20
+        int[] cnt = {0, 0, 0};
+        int n = bills.length;
+        for (int i = 0; i < n; i++) {
+            int income = bills[i];
+            if (income == 20) {
+                cnt[2]++;
+                if (cnt[1] > 0 && cnt[0] > 0) {
+                    cnt[1]--;
+                    cnt[0]--;
+                } else if (cnt[0] > 2) {
+                    cnt[0] -= 3;
+                } else {
+                    return false;
+                }
+            } else if (income == 10) {
+                cnt[1]++;
+                if (cnt[0] > 0) {
+                    cnt[0]--;
+                } else {
+                    return false;
+                }
+            } else {
+                cnt[0]++;
+            }
+        }
+        return true;
+    }
 }
