@@ -92,4 +92,22 @@ public class LeetCode0000 {
             children = new WordNode[26];
         }
     }
+
+    /**
+     * 70. 爬楼梯
+     * @param n
+     * @return
+     */
+    public int climbStairs(int n) {
+        if (n == 1) {
+            return 1;
+        }
+        int[] dp = {1, 2};
+        for (int i = 3; i <= n; i++) {
+            int temp = dp[1];
+            dp[1] += dp[0];
+            dp[0] = temp;
+        }
+        return dp[1];
+    }
 }
