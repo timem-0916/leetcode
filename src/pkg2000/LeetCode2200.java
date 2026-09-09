@@ -158,4 +158,35 @@ public class LeetCode2200 {
         return root.val == root.left.val + root.right.val;
     }
 
+    /**
+     * 2265. 统计值等于子树平均值的节点数
+     * @param root
+     * @return
+     */
+    public int averageOfSubtree(TreeNode root) {
+        int[] cnt = {0};
+        averageOfSubtreeDfs(root, cnt);
+        return cnt[0];
+    }
+
+    /**
+     * 深度优先搜索
+     * @param node
+     * @param cnt
+     * @return
+     */
+    private int[] averageOfSubtreeDfs(TreeNode node, int[] cnt) {
+        if (node == null) {
+            return new int[]{0, 0};
+        }
+        int[] left = averageOfSubtreeDfs(node.left, cnt);
+        int[] right = averageOfSubtreeDfs(node.right, cnt);
+        int size = left[0] + right[0] + 1;
+        int sum = left[1] + right[1] + node.val;
+        if (sum / size == node.val) {
+            cnt[0]++;
+        }
+        return new int[]{size, sum};
+    }
+
 }
