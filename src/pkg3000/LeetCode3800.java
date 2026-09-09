@@ -11,6 +11,20 @@ public class LeetCode3800 {
     }
 
     /**
+     * 3871. 统计范围内的逗号 II
+     * @param n
+     * @return
+     */
+    public long countCommasII(long n) {
+        long p = 1000, ans = 0;
+        while (p <= n) {
+            ans += n - p + 1;
+            p *= 1000;
+        }
+        return ans;
+    }
+
+    /**
      * 3875. 构造奇偶一致的数组 I
      * @param nums1
      * @return
