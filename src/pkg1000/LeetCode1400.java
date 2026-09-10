@@ -1,8 +1,11 @@
 package pkg1000;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Deque;
 import java.util.List;
+import java.util.Queue;
 
 public class LeetCode1400 {
     /**
@@ -147,6 +150,24 @@ public class LeetCode1400 {
             y = findSet(y);
             return x == y;
         }
+    }
+
+    /**
+     * 1492. n 的第 k 个因子
+     * @param n
+     * @param k
+     * @return
+     */
+    public int kthFactor(int n, int k) {
+        for (int i = 1; i <= n; i++) {
+            if (n % i == 0) {
+                k--;
+            }
+            if (k == 0) {
+                return i;
+            }
+        }
+        return -1;
     }
     
 }
