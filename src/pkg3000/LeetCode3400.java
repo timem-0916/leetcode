@@ -121,4 +121,38 @@ public class LeetCode3400 {
         // 回溯时重新计算当前节点的最大值
         segTree[p] = Math.max(segTree[p << 1], segTree[p << 1 | 1]);
     }
+
+    /**
+     * 3483. 不同三位偶数的数目
+     * @param digits
+     * @return
+     */
+    public int totalNumbers(int[] digits) {
+        int n = digits.length;
+        boolean[] visited = new boolean[1000];
+        int ans = 0;
+
+        for (int i = 0; i < n; i++) {
+            if (digits[i] == 0) {
+                continue;
+            }
+            for (int j = 0; j < n; j++) {
+                if (j == i) {
+                    continue;
+                }
+                for (int k = 0; k < n; k++) {
+                    if (k == j || k == i || (digits[k] & 1) == 1) {
+                        continue;
+                    }
+                    int x = digits[i] * 100 + digits[j] * 10 + digits[k];
+                    if (!visited[x]) {
+                        visited[x] = true;
+                        ans++;
+                    }
+                }
+            }
+        }
+        
+        return ans;
+    }
 }
