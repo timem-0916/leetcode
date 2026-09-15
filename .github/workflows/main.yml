@@ -1,3 +1,11 @@
-on:
-
+name: GitHub Actions Demo
+on: [push]
 jobs:
+  hello:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 打印欢迎信息
+        run: |
+          echo "🎉 Hello GitHub Actions!"
+          echo "📌 触发事件: ${{ github.event_name }}"
+          echo "🌿 分支: ${{ github.ref }}"
