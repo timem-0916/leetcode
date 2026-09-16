@@ -12,5 +12,6 @@ public final class Constant {
     }
 
     // ==================== 数学常量 ====================
+    // 取模常数，防止大数溢出
     public static final int MOD = 1_000_000_007;
 }
