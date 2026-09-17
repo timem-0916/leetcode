@@ -4,10 +4,64 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Deque;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Queue;
 
 public class LeetCode1400 {
+
+    /**
+     * 1477. 找两个和为目标值且不重叠的子数组
+     * @param arr
+     * @param target
+     * @return
+     */
+    public int minSumOfLengths(int[] arr, int target) {
+        // 前缀和 -> 最近一次出现的下标（取最新的下标，保证子数组最短）
+        Map<Integer, Integer> pos = new HashMap<>();
+        // 前缀和为 0 出现在下标 -1 处（虚拟起点）
+        pos.put(0, -1);
+
+        int n = arr.length;
+        // 当前前缀和
+        int s = 0;
+        // 全局最小长度和，初始化为不可能的大值
+        int ans = n + 1;
+        // 到当前位置为止，和为 target 的最短子数组长度
+        int minL = n;
+
+        for (int i = 0; i < n; i++) {
+            // 累加前缀和
+            s += arr[i];
+
+            // 如果存在前缀和为 s - target 的位置 j，说明 [j+1, i] 这段子数组和为 target
+            if (pos.containsKey(s - target)) {
+                // 子数组为 [j+1, i]
+                int j = pos.get(s - target);
+                // 当前子数组长度
+                int len = i - j;
+
+                // 更新答案：当前子数组长度 + j 位置之前记录的最短子数组长度
+                // j == -1 说明前面没有元素，用 n 作为无穷大占位
+                // j >= 0 时，arr[j] 存储的是上一轮循环中在位置 j 处的 minL 值
+                ans = Math.min(ans, len + (j == -1 ? n : arr[j]));
+
+                // 更新全局最短子数组长度
+                minL = Math.min(minL, len);
+            }
+
+            // 原地复用 arr 数组：在位置 i 记录到当前位置为止的最短子数组长度
+            // 这样后续位置 k 找到子数组 [j+1, k] 时，arr[j] 就是 j 之前的最短长度
+            arr[i] = minL;
+
+            // 记录当前前缀和的最新下标（覆盖旧值，保证子数组最短）
+            pos.put(s, i);
+        }
+
+        return ans == n + 1 ? -1 : ans;
+    }
+
     /**
      * 1489. 找到最小生成树里的关键边和伪关键边
      * @param n
