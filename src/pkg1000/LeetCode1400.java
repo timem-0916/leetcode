@@ -1,15 +1,34 @@
 package pkg1000;
 
-import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Deque;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Queue;
 
 public class LeetCode1400 {
+
+    /**
+     * 1401. 圆和矩形是否有重叠
+     * @param radius
+     * @param xCenter
+     * @param yCenter
+     * @param x1
+     * @param y1
+     * @param x2
+     * @param y2
+     * @return
+     */
+    public boolean checkOverlap(int radius, int xCenter, int yCenter, int x1, int y1, int x2, int y2) {
+        double dist = 0;
+        if (xCenter < x1 || xCenter > x2) {
+            dist += Math.min(Math.pow(x1 - xCenter, 2), Math.pow(x2 - xCenter, 2));
+        }
+        if (yCenter < y1 || yCenter > y2) {
+            dist += Math.min(Math.pow(y1 - yCenter, 2), Math.pow(y2 - yCenter, 2));
+        }
+        return dist <= radius * radius;
+    }
 
     /**
      * 1477. 找两个和为目标值且不重叠的子数组
