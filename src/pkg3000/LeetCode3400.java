@@ -261,4 +261,18 @@ public class LeetCode3400 {
         
         return ans;
     }
+
+    /**
+     * 3498. 字符串的反转度
+     * @param s
+     * @return
+     */
+    public int reverseDegree(String s) {
+        char[] sArray = s.toCharArray();
+        int n = sArray.length, ans = 0;
+        for (int i = 0; i < n; i++) {
+            ans += (i + 1) * (26 - (sArray[i] - 'a'));
+        }
+        return ans;
+    }
 }
