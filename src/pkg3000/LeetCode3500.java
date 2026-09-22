@@ -7,6 +7,40 @@ import java.util.Queue;
 public class LeetCode3500 {
 
     /**
+     * 3524. 求出数组的 X 值 I
+     * @param nums
+     * @param k
+     * @return
+     */
+    public long[] resultArray(int[] nums, int k) {
+        int n = nums.length;
+        // 定义 `dp[i][r]` 为以索引 `i` 结尾且乘积模 `k` 等于 `r` 的子数组个数。
+        long[][] dp = new long[n][k];
+
+        // 初始化：第一个元素单独作为子数组
+        dp[0][nums[0] % k] = 1L;
+
+        for (int i = 1; i < n; i++) {
+            // 1. 延续前一个子数组：把 nums[i] 追加到以 i-1 结尾的所有子数组后面
+            for (int r = 0; r < k; r++) {
+                dp[i][(int) ((1L * r * (nums[i] % k) + k) % k)] += dp[i - 1][r];
+            }
+
+            // 2. nums[i] 自己单独作为一个子数组
+            dp[i][nums[i] % k]++;
+        }
+
+        // 统计所有以任意位置结尾、模 k 等于 r 的子数组个数
+        long[] ans = new long[k];
+        for (int r = 0; r < k; r++) {
+            for (int i = 0; i < n; i++) {
+                ans[r] += dp[i][r];
+            }
+        }
+        return ans;
+    }
+
+    /**
      * 3568. 清理教室的最少移动
      * @param classroom
      * @param energy
