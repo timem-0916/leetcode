@@ -42,6 +42,26 @@ public class LeetCode3500 {
     }
 
     /**
+     * 3550. 数位和等于下标的最小下标
+     * @param nums
+     * @return
+     */
+    public int smallestIndex(int[] nums) {
+        int n = nums.length;
+        for (int i = 0; i < n; i++) {
+            int num = nums[i], sum = 0;
+            while (num > 0) {
+                sum += num % 10;
+                num /= 10;
+            }
+            if (sum == i) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    /**
      * 3568. 清理教室的最少移动
      * @param classroom
      * @param energy
