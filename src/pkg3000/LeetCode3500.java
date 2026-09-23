@@ -13,30 +13,31 @@ public class LeetCode3500 {
      * @return
      */
     public long[] resultArray(int[] nums, int k) {
-        int n = nums.length;
-        // 定义 `dp[i][r]` 为以索引 `i` 结尾且乘积模 `k` 等于 `r` 的子数组个数。
-        long[][] dp = new long[n][k];
-
-        // 初始化：第一个元素单独作为子数组
-        dp[0][nums[0] % k] = 1L;
-
-        for (int i = 1; i < n; i++) {
-            // 1. 延续前一个子数组：把 nums[i] 追加到以 i-1 结尾的所有子数组后面
-            for (int r = 0; r < k; r++) {
-                dp[i][(int) ((1L * r * (nums[i] % k) + k) % k)] += dp[i - 1][r];
-            }
-
-            // 2. nums[i] 自己单独作为一个子数组
-            dp[i][nums[i] % k]++;
-        }
-
+        // dp[r] 表示以当前位置结尾、乘积模 k 等于 r 的子数组个数
+        long[] dp = new long[k];
         // 统计所有以任意位置结尾、模 k 等于 r 的子数组个数
         long[] ans = new long[k];
-        for (int r = 0; r < k; r++) {
-            for (int i = 0; i < n; i++) {
-                ans[r] += dp[i][r];
+
+        for (int num : nums) {
+            // 避免下面乘法溢出
+            num %= k;
+
+            long[] ndp = new long[k];
+            // nums[i] 自己单独作为一个子数组
+            ndp[num] = 1;
+
+            for (int r = 0; r < k; r++) {
+                ndp[r * num % k] += dp[r];
+            }
+            
+            dp = ndp;
+
+            // 累加到答案中
+            for (int r = 0; r < k; r++) {
+                ans[r] += dp[r];
             }
         }
+
         return ans;
     }
 
