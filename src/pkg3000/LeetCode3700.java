@@ -48,6 +48,7 @@ public class LeetCode3700 {
      * @param start
      * @return
      */
+    @SuppressWarnings("unused")
     private boolean canFormGreater(int[] cnt, String target, int start) {
         String maxStr = getMaxString(cnt);
         String suffix = target.substring(start);
