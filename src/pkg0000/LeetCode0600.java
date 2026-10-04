@@ -67,60 +67,57 @@ public class LeetCode0600 {
      * @return
      */
     public boolean checkValidString(String s) {
-        // 存储所有 '(' 的下标（用栈，后进先出，方便后续从右往左匹配）
-        Deque<Integer> leftStack = new LinkedList<>();
-        // 存储所有 '*' 的下标（同样用栈存储下标，后续需要比较位置关系）
-        Deque<Integer> asteriskStack = new LinkedList<>();
+        // minCount：当前未匹配的左括号「最少」可能数量（下界）
+        // 代表一种最悲观的估计：尽可能多地把 '*' 当作 ')' 来抵消 '('
+        int minCount = 0;
+
+        // maxCount：当前未匹配的左括号「最多」可能数量（上界）
+        // 代表一种最乐观的估计：尽可能多地把 '*' 当作 '(' 来增加左括号
+        int maxCount = 0;
+
         int n = s.length();
 
-        // ============================================================
-        // 第一遍：从左到右扫描，优先用 '(' 匹配 ')'，不够再用 '*' 补位
-        // ============================================================
+        // 从左到右扫描字符串，动态维护 [minCount, maxCount] 这个区间
+        // 核心思想：只要 0 始终落在 [minCount, maxCount] 区间内，就说明存在一种 '*' 的用法使括号合法
         for (int i = 0; i < n; i++) {
             char c = s.charAt(i);
+
             if (c == '(') {
-                // 遇到左括号，把下标压入左括号栈，等待后续匹配
-                leftStack.push(i);
-            } else if (c == '*') {
-                // 遇到星号，把下标压入星号栈，作为「万能替补」
-                asteriskStack.push(i);
-            } else {
-                // 遇到右括号 ')'，需要找一个左括号来匹配
-                if (!leftStack.isEmpty()) {
-                    // 优先弹出最近的 '(' 进行匹配（贪心策略）
-                    leftStack.pop();
-                } else if (!asteriskStack.isEmpty()) {
-                    // 没有 '(' 可用，用 '*' 充当 '(' 来匹配
-                    asteriskStack.pop();
-                } else {
-                    // 既没有 '(' 也没有 '*'，这个 ')' 无法匹配，直接返回 false
+                // 遇到左括号：无论怎么解释，未匹配的左括号数量都必须 +1
+                minCount++;
+                maxCount++;
+            } else if (c == ')') {
+                // 遇到右括号：需要消耗一个左括号来匹配
+                // minCount - 1：最悲观情况下，也尝试用右括号抵消一个左括号
+                // Math.max(..., 0)：下界不能为负，因为「未匹配左括号数」最少为 0
+                //   （负数意味着右括号过剩，但 '*' 可以充当左括号来补救，所以下界截断到 0）
+                minCount = Math.max(minCount - 1, 0);
+
+                // maxCount - 1：最乐观情况下，也必须用这个右括号消耗一个左括号
+                maxCount--;
+
+                // 如果最乐观估计下左括号都不够用了（maxCount < 0），
+                // 说明即使把所有 '*' 都当作 '(' 也无法匹配当前右括号，直接返回 false
+                if (maxCount < 0) {
                     return false;
                 }
+            } else {
+                // 遇到星号 '*'：它可以是 '('、')' 或空字符串，三种选择
+                // minCount - 1：把 '*' 当作 ')'，抵消一个左括号（下界降低）
+                // Math.max(..., 0)：下界不能为负，同理截断到 0
+                minCount = Math.max(minCount - 1, 0);
+
+                // maxCount + 1：把 '*' 当作 '('，增加一个左括号（上界升高）
+                maxCount++;
+
+                // 注意：'*' 当作空字符串的情况隐含在区间内，不需要单独处理
             }
         }
 
-        // ============================================================
-        // 第二遍：处理剩余的 '('，用 '*' 充当 ')' 来匹配
-        // 关键约束：'*' 的下标必须大于 '(' 的下标（星号在右括号右边才能充当右括号）
-        // ============================================================
-        while (!leftStack.isEmpty() && !asteriskStack.isEmpty()) {
-            // 弹出栈顶元素（由于栈是 LIFO，弹出的是各自栈中下标最大的元素）
-            int leftIndex = leftStack.pop();          // 某个 '(' 的位置
-            int asteriskIndex = asteriskStack.pop();  // 某个 '*' 的位置
-
-            // 如果 '*' 出现在 '(' 的左边，它无法充当该 '(' 对应的 ')'
-            // 例如 "( *" → '(' 在位置0，'*' 在位置1，可以匹配
-            // 但 "* (" → '*' 在位置0，'(' 在位置1，'*' 无法充当 ')'
-            if (leftIndex > asteriskIndex) {
-                return false;
-            }
-
-            // 否则，这个 '*' 成功充当 ')' 与 '(' 配对，继续处理下一对
-        }
-
-        // 如果所有 '(' 都被匹配完了（leftStack 为空），说明字符串有效
-        // 如果还有剩余的 '(' 没匹配上，说明无效
-        return leftStack.isEmpty();
+        // 扫描结束后，检查 minCount 是否为 0
+        // minCount == 0：说明存在一种解释方式，使得所有左括号都被完全匹配，字符串有效
+        // minCount > 0：说明即使把所有 '*' 都当作 ')'，仍有左括号剩余，字符串无效
+        return minCount == 0;
     }
 
     /**
