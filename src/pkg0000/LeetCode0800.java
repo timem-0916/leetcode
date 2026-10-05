@@ -3,6 +3,7 @@ package pkg0000;
 import java.awt.Point;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Queue;
@@ -116,39 +117,34 @@ public class LeetCode0800 {
      * @return
      */
     public int scoreOfParentheses(String s) {
-        // 基础情况：字符串长度为 2，必然是 "()"，得分为 1
-        if (s.length() == 2) {
-            return 1;
-        }
+        // 栈中每个元素代表「当前层级」的累计得分
+        // 初始压入 0，表示最外层（虚拟根层级）的初始得分为 0
+        Deque<Integer> st = new ArrayDeque<>();
+        st.push(0);
 
-        int bal = 0;         // 平衡计数器：遇到 '(' +1，遇到 ')' -1
-        int n = s.length();  // 字符串总长度
-        int len = 0;         // 记录第一个「平衡子串」的长度
+        for (int i = 0; i < s.length(); i++) {
+            if (s.charAt(i) == '(') {
+                // 遇到左括号：进入新的一层嵌套
+                // 压入 0，表示这个新层级的得分从 0 开始累计
+                st.push(0);
+            } else {
+                // 遇到右括号：当前层级结束，需要结算并合并到上一层
+                int v = st.pop();          // 弹出当前层级的累计得分
+                int top = st.pop();        // 弹出上一层级的累计得分
 
-        // 从左到右扫描，找到第一个使 bal 归零的位置
-        // 此时 s[0..i] 构成一个完整的平衡括号子串（左右括号数量相等且匹配）
-        for (int i = 0; i < n; i++) {
-            bal += (s.charAt(i) == '(' ? 1 : -1);
-            if (bal == 0) {
-                len = i + 1;    // 记录子串长度（下标 i 对应长度 i+1）
-                break;          // 找到第一个平衡子串即可退出
+                // 计算当前层级的贡献值，并累加到上一层：
+                //   - 如果 v == 0：说明当前层级是 "()"（内部无嵌套），贡献 1 分
+                //   - 如果 v > 0：  说明当前层级是 "(A)"，贡献 2 * v 分（外层翻倍）
+                // Math.max(2 * v, 1) 巧妙地将两种情况统一为一个表达式
+                top = top + Math.max(2 * v, 1);
+
+                // 将更新后的上一层得分重新压回栈顶
+                st.push(top);
             }
         }
 
-        // 根据第一个平衡子串是否覆盖整个字符串，分两种情况递归计算
-        if (len == n) {
-            // 情况 A：整个字符串是一个「嵌套」结构，形如 "( A )"
-            // 例如："(()())" → 外层括号包裹内部 "()" 的得分
-            // 规则：外层括号使内部得分翻倍，即 score("(A)") = 2 * score(A)
-            // 去掉首尾括号，递归计算内部子串 s[1..n-2] 的得分
-            return 2 * scoreOfParentheses(s.substring(1, n - 1));            
-        } else {
-            // 情况 B：字符串是「并列」结构，形如 "A B"
-            // 例如："()()" → 第一个平衡子串 "()" + 剩余部分 "()"
-            // 规则：并列子串得分相加，即 score("AB") = score(A) + score(B)
-            // 递归计算前半部分 s[0..len-1] 和后半部分 s[len..n-1] 的得分并求和
-            return scoreOfParentheses(s.substring(0, len)) + scoreOfParentheses(s.substring(len));
-        }
+        // 遍历结束后，栈中只剩一个元素，即最外层的总得分
+        return st.peek();
     }
 
     /**
