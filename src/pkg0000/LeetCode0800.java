@@ -111,6 +111,47 @@ public class LeetCode0800 {
     }
 
     /**
+     * 856. 括号的分数
+     * @param s
+     * @return
+     */
+    public int scoreOfParentheses(String s) {
+        // 基础情况：字符串长度为 2，必然是 "()"，得分为 1
+        if (s.length() == 2) {
+            return 1;
+        }
+
+        int bal = 0;         // 平衡计数器：遇到 '(' +1，遇到 ')' -1
+        int n = s.length();  // 字符串总长度
+        int len = 0;         // 记录第一个「平衡子串」的长度
+
+        // 从左到右扫描，找到第一个使 bal 归零的位置
+        // 此时 s[0..i] 构成一个完整的平衡括号子串（左右括号数量相等且匹配）
+        for (int i = 0; i < n; i++) {
+            bal += (s.charAt(i) == '(' ? 1 : -1);
+            if (bal == 0) {
+                len = i + 1;    // 记录子串长度（下标 i 对应长度 i+1）
+                break;          // 找到第一个平衡子串即可退出
+            }
+        }
+
+        // 根据第一个平衡子串是否覆盖整个字符串，分两种情况递归计算
+        if (len == n) {
+            // 情况 A：整个字符串是一个「嵌套」结构，形如 "( A )"
+            // 例如："(()())" → 外层括号包裹内部 "()" 的得分
+            // 规则：外层括号使内部得分翻倍，即 score("(A)") = 2 * score(A)
+            // 去掉首尾括号，递归计算内部子串 s[1..n-2] 的得分
+            return 2 * scoreOfParentheses(s.substring(1, n - 1));            
+        } else {
+            // 情况 B：字符串是「并列」结构，形如 "A B"
+            // 例如："()()" → 第一个平衡子串 "()" + 剩余部分 "()"
+            // 规则：并列子串得分相加，即 score("AB") = score(A) + score(B)
+            // 递归计算前半部分 s[0..len-1] 和后半部分 s[len..n-1] 的得分并求和
+            return scoreOfParentheses(s.substring(0, len)) + scoreOfParentheses(s.substring(len));
+        }
+    }
+
+    /**
      * 860. 柠檬水找零
      * @param bills
      * @return
