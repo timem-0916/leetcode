@@ -1,7 +1,9 @@
 package pkg0000;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class LeetCode0300 {
 
@@ -13,77 +15,49 @@ public class LeetCode0300 {
     public List<String> removeInvalidParentheses(String s) {
         // 存储最终结果：所有删除最少括号后得到的有效字符串
         List<String> ans = new ArrayList<>();
+        // 存储当前这一层需要检查的所有字符串（同一删除数量下的候选集合）
+        // 使用 HashSet 自动去重，避免相同字符串被重复处理
+        Set<String> currSet = new HashSet<>();
 
-        // lremove：需要删除的左括号 '(' 的最少数量
-        int lremove = 0;
-        // rremove：需要删除的右括号 ')' 的最少数量
-        int rremove = 0;
+        // 初始状态：把原始字符串加入第一层
+        currSet.add(s);
 
-        // 第一遍遍历：统计最少需要删除多少个左括号和右括号
-        for (int i = 0; i < s.length(); i++) {
-            if (s.charAt(i) == '(') {
-                // 遇到左括号，先假设它需要被删除（后面如果遇到右括号可以抵消）
-                lremove++;
-            } else if (s.charAt(i) == ')') {
-                if (lremove == 0) {
-                    // 没有多余的左括号可以匹配当前右括号，这个右括号必须删除
-                    rremove++;
-                } else {
-                    // 有未匹配的左括号，可以抵消一个，左括号待删除数量减 1
-                    lremove--;
+        // BFS 主循环：每一轮代表"删除 k 个括号"，k 从 0 开始递增
+        while (true) {
+            // 遍历当前层的所有字符串，检查是否已经是有效括号序列
+            for (String str : currSet) {
+                if (isValid(str)) {
+                    ans.add(str);
                 }
             }
-        }
 
-        // 调用回溯函数，从下标 0 开始，尝试删除 lremove 个左括号和 rremove 个右括号
-        removeInvalidParenthesesHelper(s, 0, lremove, rremove, ans);
-
-        return ans;
-    }
-
-    /**
-     * 回溯搜索所有可能的删除方案
-     * @param str      当前正在处理的字符串
-     * @param start    当前遍历的起始下标，避免重复搜索
-     * @param lremove  还需要删除的左括号数量
-     * @param rremove  还需要删除的右括号数量
-     * @param ans      存储的结果
-     */
-    private void removeInvalidParenthesesHelper(String str, int start, int lremove, int rremove, List<String> ans) {
-        // 递归终止条件：需要删除的括号都已删完
-        if (lremove == 0 && rremove == 0) {
-            // 验证当前字符串是否是有效的括号序列
-            if (isValid(str)) {
-                ans.add(str);
-            }
-            return;
-        }
-
-        // 从 start 开始遍历字符串，尝试删除每一个括号
-        for (int i = start; i < str.length(); i++) {
-            // 去重剪枝：如果当前字符和前一个字符相同，跳过
-            // 避免对连续相同的括号做重复删除，产生重复结果
-            if (i != start && str.charAt(i) == str.charAt(i - 1)) {
-                continue;
+            // 如果当前层已经找到了有效字符串，说明已经是最少删除次数
+            // 直接返回结果，不再继续删除更多括号
+            if (ans.size() > 0) {
+                return ans;
             }
 
-            // 可行性剪枝：如果剩余需要删除的括号总数超过了字符串剩余长度
-            // 说明不可能删够，直接返回
-            if (lremove + rremove > str.length() - i) {
-                return;
+            // 当前层没有有效字符串，需要生成下一层：对每个字符串尝试删除一个括号
+            Set<String> nextSet = new HashSet<>();
+            for (String str : currSet) {
+                for (int i = 0; i < str.length(); i++) {
+                    // 去重剪枝：连续相同字符只处理第一个
+                    // 例如 "())" 中删除第 1 个或第 2 个 ')' 结果相同，避免重复
+                    if (i > 0 && str.charAt(i) == str.charAt(i - 1)) {
+                        continue;
+                    }
+
+                    // 只对括号字符进行删除操作，非括号字符跳过
+                    if (str.charAt(i) == '(' || str.charAt(i) == ')') {
+                        // 删除下标 i 处的字符，拼接前后两部分生成新字符串
+                        // 加入 nextSet，由 HashSet 自动去重
+                        nextSet.add(str.substring(0, i) + str.substring(i + 1));
+                    }
+                }
             }
 
-            // 尝试删除一个左括号
-            if (lremove > 0 && str.charAt(i) == '(') {
-                // 删除下标 i 处的左括号，拼接新字符串
-                // 递归时 start 仍传 i（因为删除后后面的字符前移了，i 位置已经是新字符）
-                removeInvalidParenthesesHelper(str.substring(0, i) + str.substring(i + 1), i, lremove - 1, rremove, ans);
-            }
-
-            // 尝试删除一个右括号
-            if (rremove > 0 && str.charAt(i) == ')') {
-                removeInvalidParenthesesHelper(str.substring(0, i) + str.substring(i + 1), i, lremove, rremove - 1, ans);
-            }
+            // 进入下一层：检查删除 k+1 个括号后的所有候选字符串
+            currSet = nextSet;
         }
     }
 
