@@ -1,5 +1,10 @@
 package pkg0000;
 
+import java.util.ArrayDeque;
+import java.util.Deque;
+import java.util.HashSet;
+import java.util.Set;
+
 public class LeetCode0000 {
 
     /**
@@ -91,6 +96,43 @@ public class LeetCode0000 {
             cnt = 0;
             children = new WordNode[26];
         }
+    }
+
+    /**
+     * 20. 有效的括号
+     * @param s
+     * @return
+     */
+    public boolean isValid(String s) {
+        // 用两个字符串分别存储左括号和右括号，相同下标的字符互为配对
+        // set[0] = "([{"  →  左括号集合，下标 0='(', 1='[', 2='{'
+        // set[1] = ")]}"  →  右括号集合，下标 0=')', 1=']', 2='}'
+        // 配对原理：'(' 和 ')' 下标都是 0，'[' 和 ']' 下标都是 1，以此类推
+        final String[] set = {"([{", ")]}"};
+
+        // 栈：存储遇到的左括号在 set[0] 中的下标（0、1 或 2）
+        // 遇到右括号时，弹出栈顶下标与当前右括号的下标比较，相等则配对成功
+        Deque<Integer> stack = new ArrayDeque<>();
+
+        for (int i = 0; i < s.length(); i++) {
+            char c = s.charAt(i);
+            if (set[0].indexOf(c) >= 0) {
+                // 当前字符是左括号（在 set[0] 中能找到）
+                // 将其在 set[0] 中的下标压入栈，等待后续匹配
+                stack.push(set[0].indexOf(c));
+            } else if (stack.isEmpty() || stack.pop() != set[1].indexOf(c)) {
+                // 当前字符是右括号，需要检查是否能与栈顶的左括号配对
+                // 两种无效情况用短路或 (||) 合并判断：
+                //   1. 栈为空 → 没有左括号可以匹配，无效
+                //   2. 栈顶下标 ≠ 当前右括号在 set[1] 中的下标 → 类型不匹配，无效
+                // 注意：stack.pop() 会同时完成「取出栈顶」和「弹出元素」两个操作
+                return false;
+            }
+        }
+
+        // 遍历结束后，栈必须为空才说明所有左括号都被正确匹配
+        // 若栈非空，说明有左括号多余未闭合，返回 false
+        return stack.isEmpty();
     }
 
     /**
