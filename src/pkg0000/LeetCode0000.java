@@ -1,7 +1,9 @@
 package pkg0000;
 
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Deque;
+import java.util.List;
 
 public class LeetCode0000 {
 
@@ -131,6 +133,58 @@ public class LeetCode0000 {
         // 遍历结束后，栈必须为空才说明所有左括号都被正确匹配
         // 若栈非空，说明有左括号多余未闭合，返回 false
         return stack.isEmpty();
+    }
+
+    /**
+     * 22. 括号生成
+     * @param n
+     * @return
+     */
+    public List<String> generateParenthesis(int n) {
+        // 用于存储所有合法的括号组合结果
+        List<String> combinations = new ArrayList<>();
+
+        // 创建一个长度为 2n 的字符数组，作为递归过程中构建括号的「画布」
+        // 每一层递归会在当前位置填入 '(' 或 ')'，最终填满整个数组
+        generateAll(new char[2 * n], 0, 0, combinations);
+
+        return combinations;
+    }
+
+    /**
+     * 暴力枚举所有可能的括号组合，再筛选出合法的
+     * @param current 当前正在构建的字符数组
+     * @param pos 当前要填充的位置下标
+     * @param leftCnt 已经填充的左括号数目
+     * @param result 收集合法组合的结果列表
+     */
+    private void generateAll(char[] current, int pos, int leftCnt, List<String> result) {
+        int n = current.length >> 1;
+
+        // ========== 递归终止：数组已填满 ==========
+        if (pos == current.length) {
+            // 由于递归过程中已经严格约束了左右括号数量，
+            // 能走到这里的一定是恰好 n 个 '(' 和 n 个 ')' 且前缀合法，
+            // 直接加入结果，无需 valid() 校验
+            result.add(new String(current));
+            return;
+        }
+
+        // ========== 剪枝一：左括号还没用完，可以填 '(' ==========
+        // 已用左括号数 < n，说明还有名额，填入 '(' 不会导致左括号超额
+        if (leftCnt < n) {
+            current[pos] = '(';
+            generateAll(current, pos + 1, leftCnt + 1, result);
+        }
+
+        // ========== 剪枝二：右括号数量尚未追平左括号，可以填 ')' ==========
+        // 已用右括号数 = pos - leftCnt
+        // 只有当 右括号数 < 左括号数 时，填入 ')' 才不会破坏前缀合法性
+        // 即 pos - leftCnt < leftCnt  ⟺  leftCnt * 2 > pos
+        if (leftCnt << 1 > pos) {
+            current[pos] = ')';
+            generateAll(current, pos + 1, leftCnt, result);
+        }
     }
 
     /**
