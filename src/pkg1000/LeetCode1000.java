@@ -1,11 +1,57 @@
 package pkg1000;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
 public class LeetCode1000 {
+
+    /**
+     * 1021. 删除最外层的括号
+     * @param s
+     * @return
+     */
+    public String removeOuterParentheses(String s) {
+        // 用于拼接最终结果，避免字符串频繁拼接产生的性能开销
+        StringBuilder ans = new StringBuilder();
+
+        // 栈：用于跟踪当前括号的嵌套层级
+        // 栈非空时说明当前字符处于某个外层括号的「内部」，需要保留
+        Deque<Character> stack = new ArrayDeque<>();
+
+        int n = s.length();
+
+        for (int i = 0; i < n; i++) {
+            char c = s.charAt(i);
+
+            if (c == ')') {
+                // 遇到右括号：先弹出栈顶元素（匹配一个左括号）
+                // 这样如果当前 ')' 是某个原语的最外层右括号，
+                // 弹出后栈会变空，后续的 append 判断就会跳过它
+                stack.pop();
+            }
+
+            // 核心判断：栈非空时，说明当前字符处于某个括号的内部（非最外层）
+            // 只有「内部字符」才需要保留到结果中
+            if (!stack.isEmpty()) {
+                ans.append(c);
+            }
+
+            if (c == '(') {
+                // 遇到左括号：压入栈中，表示进入新的一层嵌套
+                // 注意：如果是某个原语的最外层 '('，
+                // 此时栈从空变为非空，但上面的 append 已经执行过了（那时栈还是空的），
+                // 所以这个最外层 '(' 不会被加入结果
+                stack.push(c);
+            }
+        }
+        
+        return ans.toString();
+    }
+
     /**
      * 1096. 花括号展开 II
      * @param expression
