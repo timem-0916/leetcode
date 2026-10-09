@@ -1,6 +1,89 @@
 package pkg0000;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 public class LeetCode0300 {
+
+    /**
+     * 301. 删除无效的括号
+     * @param s
+     * @return
+     */
+    public List<String> removeInvalidParentheses(String s) {
+        // 存储最终结果：所有删除最少括号后得到的有效字符串
+        List<String> ans = new ArrayList<>();
+        // 存储当前这一层需要检查的所有字符串（同一删除数量下的候选集合）
+        // 使用 HashSet 自动去重，避免相同字符串被重复处理
+        Set<String> currSet = new HashSet<>();
+
+        // 初始状态：把原始字符串加入第一层
+        currSet.add(s);
+
+        // BFS 主循环：每一轮代表"删除 k 个括号"，k 从 0 开始递增
+        while (true) {
+            // 遍历当前层的所有字符串，检查是否已经是有效括号序列
+            for (String str : currSet) {
+                if (isValid(str)) {
+                    ans.add(str);
+                }
+            }
+
+            // 如果当前层已经找到了有效字符串，说明已经是最少删除次数
+            // 直接返回结果，不再继续删除更多括号
+            if (ans.size() > 0) {
+                return ans;
+            }
+
+            // 当前层没有有效字符串，需要生成下一层：对每个字符串尝试删除一个括号
+            Set<String> nextSet = new HashSet<>();
+            for (String str : currSet) {
+                for (int i = 0; i < str.length(); i++) {
+                    // 去重剪枝：连续相同字符只处理第一个
+                    // 例如 "())" 中删除第 1 个或第 2 个 ')' 结果相同，避免重复
+                    if (i > 0 && str.charAt(i) == str.charAt(i - 1)) {
+                        continue;
+                    }
+
+                    // 只对括号字符进行删除操作，非括号字符跳过
+                    if (str.charAt(i) == '(' || str.charAt(i) == ')') {
+                        // 删除下标 i 处的字符，拼接前后两部分生成新字符串
+                        // 加入 nextSet，由 HashSet 自动去重
+                        nextSet.add(str.substring(0, i) + str.substring(i + 1));
+                    }
+                }
+            }
+
+            // 进入下一层：检查删除 k+1 个括号后的所有候选字符串
+            currSet = nextSet;
+        }
+    }
+
+    /**
+     * 判断字符串是否是有效的括号序列
+     * 规则：遍历过程中右括号数量不能超过左括号，且最终左右括号数量相等
+     * @param str
+     * @return
+     */
+    private boolean isValid(String str) {
+        int cnt = 0;
+        for (int i = 0; i < str.length(); i++) {
+            if (str.charAt(i) == '(') {
+                cnt++;
+            } else if (str.charAt(i) == ')') {
+                cnt--;
+                // 右括号比左括号多，说明无效
+                if (cnt < 0) {
+                    return false;
+                }
+            }
+        }
+
+        // 最终 cnt 必须为 0，左右括号完全匹配
+        return cnt == 0;
+    }
 
     /**
      * 307. 区域和检索 - 数组可修改

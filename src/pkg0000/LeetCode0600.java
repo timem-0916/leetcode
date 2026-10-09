@@ -1,5 +1,6 @@
 package pkg0000;
 
+
 import util.TreeNode;
 
 public class LeetCode0600 {
@@ -56,6 +57,65 @@ public class LeetCode0600 {
 
         // 返回修剪后的根节点
         return root;
+    }
+
+    /**
+     * 678. 有效的括号字符串
+     * @param s
+     * @return
+     */
+    public boolean checkValidString(String s) {
+        // minCount：当前未匹配的左括号「最少」可能数量（下界）
+        // 代表一种最悲观的估计：尽可能多地把 '*' 当作 ')' 来抵消 '('
+        int minCount = 0;
+
+        // maxCount：当前未匹配的左括号「最多」可能数量（上界）
+        // 代表一种最乐观的估计：尽可能多地把 '*' 当作 '(' 来增加左括号
+        int maxCount = 0;
+
+        int n = s.length();
+
+        // 从左到右扫描字符串，动态维护 [minCount, maxCount] 这个区间
+        // 核心思想：只要 0 始终落在 [minCount, maxCount] 区间内，就说明存在一种 '*' 的用法使括号合法
+        for (int i = 0; i < n; i++) {
+            char c = s.charAt(i);
+
+            if (c == '(') {
+                // 遇到左括号：无论怎么解释，未匹配的左括号数量都必须 +1
+                minCount++;
+                maxCount++;
+            } else if (c == ')') {
+                // 遇到右括号：需要消耗一个左括号来匹配
+                // minCount - 1：最悲观情况下，也尝试用右括号抵消一个左括号
+                // Math.max(..., 0)：下界不能为负，因为「未匹配左括号数」最少为 0
+                //   （负数意味着右括号过剩，但 '*' 可以充当左括号来补救，所以下界截断到 0）
+                minCount = Math.max(minCount - 1, 0);
+
+                // maxCount - 1：最乐观情况下，也必须用这个右括号消耗一个左括号
+                maxCount--;
+
+                // 如果最乐观估计下左括号都不够用了（maxCount < 0），
+                // 说明即使把所有 '*' 都当作 '(' 也无法匹配当前右括号，直接返回 false
+                if (maxCount < 0) {
+                    return false;
+                }
+            } else {
+                // 遇到星号 '*'：它可以是 '('、')' 或空字符串，三种选择
+                // minCount - 1：把 '*' 当作 ')'，抵消一个左括号（下界降低）
+                // Math.max(..., 0)：下界不能为负，同理截断到 0
+                minCount = Math.max(minCount - 1, 0);
+
+                // maxCount + 1：把 '*' 当作 '('，增加一个左括号（上界升高）
+                maxCount++;
+
+                // 注意：'*' 当作空字符串的情况隐含在区间内，不需要单独处理
+            }
+        }
+
+        // 扫描结束后，检查 minCount 是否为 0
+        // minCount == 0：说明存在一种解释方式，使得所有左括号都被完全匹配，字符串有效
+        // minCount > 0：说明即使把所有 '*' 都当作 ')'，仍有左括号剩余，字符串无效
+        return minCount == 0;
     }
 
     /**

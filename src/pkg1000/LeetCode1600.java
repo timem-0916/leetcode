@@ -1,5 +1,7 @@
 package pkg1000;
 
+import java.util.Arrays;
+
 import util.Constant;
 
 public class LeetCode1600 {
@@ -44,5 +46,41 @@ public class LeetCode1600 {
 
         // 返回第 n-1 个位置结尾、放置了 k 个集合的方案数
         return dp[n - 1];
+    }
+
+    /**
+     * 1658. 将 x 减到 0 的最小操作数
+     * @param nums
+     * @param x
+     * @return
+     */
+    public int minOperations(int[] nums, int x) {
+        // target 中间子数组的目标和
+        int n = nums.length, target = Arrays.stream(nums).sum() - x;
+        // target < 0 说明 x > totalSum，不可能完成，返回 -1
+        if (target < 0) {
+            return -1;
+        }
+        // 处理 target == 0 的情况，需要移除整个数组
+        if (target == 0) {
+            return n;
+        }
+
+        int subSum = 0, maxLen = 0;
+        // 滑动窗口：找和为 target 的最长子数组
+        for (int l = 0, r = 0; r < n; r++) {
+            subSum += nums[r];
+            // 当窗口和超过 target 时，收缩左边界
+            while (subSum > target && l <= r) {
+                subSum -= nums[l++];
+            }
+            // 如果窗口和恰好等于 target，更新最大长度
+            if (subSum == target) {
+                maxLen = Math.max(maxLen, r - l + 1);
+            }
+        }
+        
+        // 如果没找到合法子数组，返回 -1；否则返回需要移除的元素个数
+        return maxLen == 0 ? -1 : n - maxLen;
     }
 }

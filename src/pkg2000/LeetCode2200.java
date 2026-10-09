@@ -2,9 +2,7 @@ package pkg2000;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.PriorityQueue;
 
 import util.TreeNode;
@@ -23,6 +21,7 @@ public class LeetCode2200 {
      * @param dest
      * @return
      */
+    @SuppressWarnings("unchecked")
     public long minimumWeight(int n, int[][] edges, int src1, int src2, int dest) {
         // 1. 使用邻接表建图，空间复杂度为 O(N + M)，且天然支持重边（多条边会被全部存入列表）
         // 正向图：用于计算 src1 和 src2 到各点的距离

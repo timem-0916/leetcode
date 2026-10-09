@@ -7,6 +7,61 @@ import java.util.Queue;
 public class LeetCode3500 {
 
     /**
+     * 3524. 求出数组的 X 值 I
+     * @param nums
+     * @param k
+     * @return
+     */
+    public long[] resultArray(int[] nums, int k) {
+        // dp[r] 表示以当前位置结尾、乘积模 k 等于 r 的子数组个数
+        long[] dp = new long[k];
+        // 统计所有以任意位置结尾、模 k 等于 r 的子数组个数
+        long[] ans = new long[k];
+
+        for (int num : nums) {
+            // 避免下面乘法溢出
+            num %= k;
+
+            long[] ndp = new long[k];
+            // nums[i] 自己单独作为一个子数组
+            ndp[num] = 1;
+
+            for (int r = 0; r < k; r++) {
+                ndp[r * num % k] += dp[r];
+            }
+            
+            dp = ndp;
+
+            // 累加到答案中
+            for (int r = 0; r < k; r++) {
+                ans[r] += dp[r];
+            }
+        }
+
+        return ans;
+    }
+
+    /**
+     * 3550. 数位和等于下标的最小下标
+     * @param nums
+     * @return
+     */
+    public int smallestIndex(int[] nums) {
+        int n = nums.length;
+        for (int i = 0; i < n; i++) {
+            int num = nums[i], sum = 0;
+            while (num > 0) {
+                sum += num % 10;
+                num /= 10;
+            }
+            if (sum == i) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    /**
      * 3568. 清理教室的最少移动
      * @param classroom
      * @param energy

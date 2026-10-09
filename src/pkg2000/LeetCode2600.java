@@ -16,6 +16,7 @@ public class LeetCode2600 {
         private int n;
         private List<int[]>[] g;
 
+        @SuppressWarnings("unchecked")
         public Graph(int n, int[][] edges) {
             this.n = n;
             g = new List[n];
