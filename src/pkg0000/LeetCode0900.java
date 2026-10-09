@@ -1,6 +1,9 @@
 package pkg0000;
 
-import java.util.Arrays;
+import java.util.List;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Queue;
 
 public class LeetCode0900 {
 
@@ -10,29 +13,141 @@ public class LeetCode0900 {
      * @return
      */
     public int catMouseGame(int[][] graph) {
-        // 三种游戏结果常量
-        // WIN[0] -> 平局（双方都无法取胜，陷入循环）
-        // WIN[1] -> 老鼠获胜（老鼠到达节点 0）
-        // WIN[2] -> 猫获胜（猫抓住老鼠）
-        final int[] WIN = {0, 1, 2};
-
-        // 图的节点数
         int n = graph.length;
-        // 记忆化搜索表：dp[mouse][cat][turns] 记录该状态的结果
-        // dp[mouse][cat][turns]：
-        //   mouse —— 老鼠当前所在节点
-        //   cat   —— 猫当前所在节点
-        //   turns —— 当前回合数（从 0 开始）
-        // 初始值 -1 表示该状态尚未计算
-        int[][][] dp = new int[n][n][2 * n * (n - 1)];
+
+        // 游戏角色与结果常量
+        final int[] TURN = {0, 1};    // 当前轮到谁移动
+        final int[] WIN = {0, 1, 2};  // 三种游戏结果
+
+        int[][][] degrees = new int[n][n][2];
+        int[][][] results = new int[n][n][2];
+
+        // 用队列进行 BFS 反向传播，从已知的终止状态往回推
+        Queue<int[]> queue = new ArrayDeque<>();
+
+        // ========== 第一步：初始化每个状态的出度 ==========
+        // degrees[mouse][cat][turn] 表示该状态下当前移动方有多少个可走的下一步
         for (int i = 0; i < n; i++) {
-            for (int j = 0; j < n; j++) {
-                Arrays.fill(dp[i][j], -1);
+            for (int j = 1; j < n; j++) {
+                // 老鼠移动时，可以走到任意邻居节点
+                degrees[i][j][TURN[0]] = graph[i].length;
+                // 猫移动时，可以走到任意邻居节点（先按全部邻居计数，后面再减去节点 0）
+                degrees[i][j][TURN[1]] = graph[j].length;
             }
         }
 
-        // 初始状态：老鼠在节点 1，猫在节点 2，第 0 回合（老鼠先走）
-        return catMouseGameHelp(WIN, graph, dp, 1, 2, 0);
+        // 猫不能进入节点 0（洞），所以猫移动时的出度要减去能走到节点 0 的边
+        // 对每个猫位置 node（node 是节点 0 的邻居），所有 (mouse=node, cat=任意, turn=CAT_TURN) 的出度 -1
+        for (int node : graph[0]) {
+            for (int i = 0; i < n; i++) {
+                degrees[i][node][TURN[1]]--;
+            }
+        }
+
+        // ========== 第二步：将所有已知终止状态入队 ==========
+
+        // 终止状态一：老鼠在节点 0（洞），老鼠获胜
+        // 无论轮到谁，只要老鼠已经在洞里，结果就是老鼠赢
+        for (int j = 1; j < n; j++) {
+            results[0][j][TURN[0]] = WIN[1];
+            results[0][j][TURN[1]] = WIN[1];
+            queue.offer(new int[]{0, j, TURN[0]});
+            queue.offer(new int[]{0, j, TURN[1]});
+        }
+
+        // 终止状态二：猫和老鼠在同一节点，猫获胜
+        // 无论轮到谁，只要猫抓住了老鼠，结果就是猫赢
+        // 注意 i 从 1 开始，因为猫不能进入节点 0，所以 (0,0) 不会出现
+        for (int i = 1; i < n; i++) {
+            results[i][i][TURN[0]] = WIN[2];
+            results[i][i][TURN[1]] = WIN[2];
+            queue.offer(new int[]{i, i, TURN[0]});
+            queue.offer(new int[]{i, i, TURN[1]});
+        }
+
+        // ========== 第三步：BFS 反向传播 ==========
+        // 从已知的终止状态出发，反向推导前驱状态的结果
+        // 核心思想：如果一个状态的所有后继都确定了，那么这个状态的结果也确定了
+        while (!queue.isEmpty()) {
+            int[] state = queue.poll();
+            int mouse = state[0], cat = state[1], turn = state[2];
+            // 当前已确定的结果
+            int result = results[mouse][cat][turn];
+
+            // 获取所有能转移到当前状态的前驱状态
+            List<int[]> prevStates = getPrevStates(TURN, WIN, graph, mouse, cat, turn);
+
+            for (int[] prevState : prevStates) {
+                int prevMouse = prevState[0], prevCat = prevState[1], prevTurn = prevState[2];
+                // 只处理尚未确定结果的前驱状态
+                if (results[prevMouse][prevCat][prevTurn] == WIN[0]) {
+                    // 判断：前驱状态的移动方能否通过走到当前状态而「必胜」
+                    //   result == MOUSE_WIN && prevTurn == MOUSE_TURN
+                    //     → 前驱轮到老鼠走，且下一步是鼠胜 → 老鼠会选这条路，前驱也是鼠胜
+                    //   result == CAT_WIN && prevTurn == CAT_TURN
+                    //     → 前驱轮到猫走，且下一步是猫胜 → 猫会选这条路，前驱也是猫胜
+                    boolean canWin = (result == WIN[1] && prevTurn == TURN[0]) || (result == WIN[2] && prevTurn == TURN[1]);
+                    if (canWin) {
+                        // 前驱移动方找到了必胜走法，直接确定结果并入队
+                        results[prevMouse][prevCat][prevTurn] = result;
+                        queue.offer(new int[]{prevMouse, prevCat, prevTurn});
+                    } else {
+                        // 当前后继对前驱移动方不利（是对手的胜局）
+                        // 前驱移动方不会主动选这条路，所以只是把「未探索后继数」减 1
+                        degrees[prevMouse][prevCat][prevTurn]--;
+
+                        // 如果所有后继都探索完了（出度归零），说明前驱移动方无路可走
+                        // 所有走法都通向对手的胜利，前驱只能接受失败
+                        if (degrees[prevMouse][prevCat][prevTurn] == 0) {
+                            // 老鼠的所有后继都是猫胜 → 前驱是猫胜
+                            // 猫的所有后继都是鼠胜 → 前驱是鼠胜
+                            int loseResult = prevTurn == TURN[0] ? WIN[2] : WIN[1];
+                            results[prevMouse][prevCat][prevTurn] = loseResult;
+                            queue.offer(new int[]{prevMouse, prevCat, prevTurn});
+                        }
+                    }
+                }
+            }
+        }
+
+        // 返回初始状态 (mouse=1, cat=2, turn=MOUSE_TURN) 的结果
+        return results[1][2][TURN[0]];
+    }
+
+    /**
+     * 获取所有能转移到 (mouse, cat, turn) 的前驱状态
+     * 即：从哪些状态走一步可以到达当前状态
+     * 
+     * @param TURN   当前轮到谁移动
+     * @param WIN    三种游戏结果
+     * @param graph  图
+     * @param mouse  当前老鼠位置
+     * @param cat    当前猫位置
+     * @param turn   当前轮到谁
+     * @return       前驱状态列表，每个元素为 [prevMouse, prevCat, prevTurn]
+     */
+    private List<int[]> getPrevStates(final int[] TURN, final int[] WIN, int[][] graph, int mouse, int cat, int turn) {
+        List<int[]> prevStates = new ArrayList<>();
+
+        // 前驱的轮次与当前相反
+        int prevTurn = turn == TURN[0] ? TURN[1] : TURN[0];
+
+        if (prevTurn == TURN[0]) {
+            // 前驱轮到老鼠走，说明老鼠从某个邻居 prev 走到了当前的 mouse
+            // 猫的位置不变
+            for (int prev : graph[mouse]) {
+                prevStates.add(new int[]{prev, cat, prevTurn});
+            }
+        } else {
+            // 前驱轮到猫走，说明猫从某个邻居 prev 走到了当前的 cat
+            // 老鼠的位置不变；猫不能从节点 0 出发（猫不在洞里）
+            for (int prev : graph[cat]) {
+                if (prev != 0) {
+                    prevStates.add(new int[]{mouse, prev, prevTurn});
+                }
+            }
+        }
+        return prevStates;
     }
 
     /**
