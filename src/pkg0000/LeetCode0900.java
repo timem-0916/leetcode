@@ -3,6 +3,7 @@ package pkg0000;
 import java.util.List;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Queue;
 
 public class LeetCode0900 {
@@ -311,4 +312,48 @@ public class LeetCode0900 {
         }
         return total;
     }
+
+    /**
+     * 948. 令牌放置
+     * @param tokens
+     * @param power
+     * @return
+     */
+    public int bagOfTokensScore(int[] tokens, int power) {
+        // 第一步：排序，为双指针贪心做准备
+        // 排序后，左边是最小的令牌（换分数时消耗最少能量）
+        // 右边是最大的令牌（换能量时获得最多能量）
+        Arrays.sort(tokens);
+
+        int n = tokens.length;  // 令牌个数
+        int left = 0;           // 左指针，指向当前最小的未使用令牌
+        int right = n - 1;      // 右指针，指向当前最大的未使用令牌
+        int score = 0;          // 当前分数
+        int maxScore = 0;       // 记录过程中的最大分数（最终答案）
+
+        // 第二步：双指针交替操作，直到左右指针相遇
+        while (left <= right) {
+            // 情况一：能量足够，优先用最小令牌「面朝上」换分数
+            // 为什么选最小？因为消耗最少能量，保留大令牌后续换能量
+            if (power >= tokens[left]) {
+                power -= tokens[left++];                 // 左指针右移，该令牌已使用; 消耗令牌对应的能量
+                maxScore = Math.max(maxScore, ++score);  // 分数 +1, 更新历史最高分
+            }
+            // 情况二：能量不够，但有分数，用最大令牌「面朝下」换能量
+            // 为什么选最大？因为获得最多能量，为后续换更多分数做准备
+            else if (score > 0) {
+                power += tokens[right--];                // 右指针左移，该令牌已使用; 消耗令牌对应的能量
+                score--;                                 // 分数 -1
+            }
+            // 情况三：既没能量换分数，也没分数换能量，游戏结束
+            else {
+                break;
+            }
+        }
+
+        // 返回过程中出现过的最大分数
+        // 注意：不是返回最终的 score，因为最后可能为了换能量而降低了分数
+        return maxScore;
+    }
+
 }
