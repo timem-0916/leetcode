@@ -86,6 +86,34 @@ public class LeetCode3700 {
     }
 
     /**
+     * 3727. 最大交替平方和
+     */
+    public long maxAlternatingSum(int[] nums) {
+        int n = nums.length;
+
+        // 将所有元素转为平方数（题目要求的是平方和）
+        for (int i = 0; i < n; i++) {
+            nums[i] = nums[i] * nums[i];
+        }
+
+        // 升序排序
+        Arrays.sort(nums);
+
+        long ans = 0;
+        // 较小的一半取负号，较大的一半取正号
+        // n >> 1 即 n/2，下标 0 ~ n/2-1 是较小的一半
+        for (int i = 0; i < n; i++) {
+            if (i < n / 2) {
+                ans -= nums[i];
+            } else {
+                ans += nums[i];
+            }
+        }
+
+        return ans;
+    }
+
+    /**
      * 3734. 大于目标字符串的最小字典序回文排列
      * @param s
      * @param target
