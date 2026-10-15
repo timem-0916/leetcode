@@ -1,5 +1,9 @@
 package pkg2000;
 
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 public class LeetCode2900 {
     /**
      * 2904. 最短且字典序最小的美丽子字符串
@@ -37,6 +41,29 @@ public class LeetCode2900 {
                 if (temp.length() < ans.length() || (temp.length() == ans.length() && temp.compareTo(ans) < 0)) {
                     ans = temp;
                 }
+            }
+        }
+
+        return ans;
+    }
+
+    /**
+     * 2913. 子数组不同元素数目的平方和 I
+     * @param heights
+     * @param queries
+     * @return
+     */
+    public int sumCounts(List<Integer> nums) {
+        int n = nums.size(), ans = 0;
+
+        // 枚举 nums[i...j] 子数组
+        for (int i = 0; i < n; i++) {
+            // 存储当前子数组中的元素
+            Set<Integer> set = new HashSet<>();
+            for (int j = i; j < n; j++) {
+                set.add(nums.get(j));
+                int s = set.size();
+                ans += s * s;
             }
         }
 
