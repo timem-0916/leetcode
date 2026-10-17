@@ -62,6 +62,96 @@ public class LeetCode3500 {
     }
 
     /**
+     * 3551. 数位和排序需要的最小交换次数（方法一：置换环）
+     * 
+     * 求把数组排成“按数位和升序、数位和相同则按数值升序”的目标顺序，
+     * 最少需要多少次相邻交换。
+     *
+     * 核心思路：
+     *   1. 先算出每个元素的数位和。
+     *   2. 根据数位和、数值对下标排序，得到目标排列顺序。
+     *   3. 把“当前下标 → 目标下标”的映射看成若干置换环。
+     *   4. 一个长度为 k 的环，最少需要 k - 1 次交换还原。
+     *   5. 总交换次数 = n - 环数。
+     *
+     * 时间复杂度 O(n log n)，空间复杂度 O(n)。
+     * 
+     * @param nums
+     * @return
+     */
+    public int minSwaps(int[] nums) {
+        int n = nums.length;
+
+        // digitSum[i] 表示 nums[i] 的数位和，例如 132 -> 1+3+2 = 6
+        int[] digitSum = new int[n];
+        for (int i = 0; i < n; i++) {
+            int x = nums[i];
+            int sum = 0;
+            
+            // 逐位取出数字并累加
+            while (x > 0) {
+                // 取最低位
+                sum += x % 10;
+                // 去掉最低位
+                x /= 10;
+            }
+
+            digitSum[i] = sum;
+        }
+
+        // indices 存的是原始下标 [0, 1, 2, ..., n-1]
+        // 后面通过对 indices 排序，间接得到“按规则排序后的下标顺序”
+        Integer[] indices = new Integer[n];
+        for (int i = 0; i < n; i++) {
+            indices[i] = i;
+        }
+
+        // 按目标规则排序：
+        //   第一关键字：数位和升序
+        //   第二关键字：数值升序
+        // 排序后，indices[pos] 表示“目标位置 pos 上应该放原始下标 indices[pos] 的元素”
+        Arrays.sort(indices, (a, b) -> {
+            if (digitSum[a] != digitSum[b]) {
+                return Integer.compare(digitSum[a], digitSum[b]);
+            }
+            return Integer.compare(nums[a], nums[b]);
+        });
+
+        // targetPos[i] 表示：原始下标 i 的元素，在目标排列中应该去哪个位置
+        // 例如 targetPos[3] = 5 表示原来在位置 3 的元素，目标位置是 5
+        int[] targetPos = new int[n];
+        for (int i = 0; i < n; i++) {
+            targetPos[indices[i]] = i;
+        }
+
+        // 用 visited 标记哪些位置已经处理过
+        boolean[] visited = new boolean[n];
+
+        // cycles 记录置换环的个数
+        int cycles = 0;
+
+        // 遍历每个位置，找出所有置换环
+        for (int i = 0; i < n; i++) {
+            if (!visited[i]) {
+                // 发现一个新的环
+                cycles++;
+
+                // 沿着 targetPos 走一圈，把整个环标记为已访问
+                int j = i;
+                while (!visited[j]) {
+                    visited[j] = true;
+                    // 跳到当前元素应该去的目标位置
+                    j = targetPos[j];
+                }
+            }
+        }
+
+        // 每个长度为 k 的环需要 k-1 次交换
+        // 所有环加起来：Σ(k-1) = Σk - 环数 = n - cycles
+        return n - cycles;
+    }
+
+    /**
      * 3568. 清理教室的最少移动
      * @param classroom
      * @param energy
