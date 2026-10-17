@@ -89,6 +89,79 @@ public class LeetCode0200 {
     }
 
     /**
+     * 265. 粉刷房子 II（动态规划：空间优化）
+     * @param costs
+     * @return
+     */
+    public int minCostII(int[][] costs) {
+        // 边界：没有房子，花费为 0
+        if (costs.length == 0) {
+            return 0;
+        }
+
+        // 一共有 n 个房子，k 种粉刷颜色
+        int n = costs.length, k = costs[0].length;
+
+        /* 首先，我们需要确定第一行的两个最小值。我们还需要记住最小的那个颜色。*/
+        // min[0] -> 最小值，min[1] -> 次小值
+        int[] min = {-1, -1};
+        // 最小值对应的颜色
+        int minColor = -1;
+
+        // dp 边界
+        for (int color = 0; color < k; color++) {
+            int cost = costs[0][color];
+            if (min[0] == -1 || cost < min[0]) {
+                min[1] = min[0];
+                minColor = color;
+                min[0] = cost;
+            } else if (min[1] == -1 || cost < min[1]) {
+                min[1] = cost;
+            }
+        }
+
+        // 现在，我们需要一路往下走，维护最小值。
+        for (int house = 1; house < n; house++) {
+            int[] min1 = {-1, -1};
+            int minColor1 = -1;
+
+            for (int color = 0; color < k; color++) {
+                // 当前房子刷 color 颜色的原始花费
+                int cost = costs[house][color];
+                if (color == minColor) {
+                    // 当前颜色与上一行最小值颜色相同，不能相邻同色，
+                    // 所以只能接上一行的次小值
+                    cost += min[1];
+                } else {
+                    // 当前颜色与上一行最小值颜色不同，可以接上一行的最小值
+                    cost += min[0];
+                }
+
+                // 用当前累计花费更新本行的最小值和次小值
+                if (min1[0] == -1 || cost < min1[0]) {
+                    // 当前值比已知最小值还小：
+                    //   原来的最小值降级为次小值
+                    //   当前值成为新的最小值
+                    min1[1] = min1[0];
+                    minColor1 = color;
+                    min1[0] = cost;
+                } else if (min1[1] == -1 || cost < min1[1]) {
+                    // 当前值不小于最小值，但比次小值小：
+                    //   更新次小值
+                    min1[1] = cost;
+                }
+            }
+
+            // 当前行处理完毕，把当前行的结果变成“上一行”的结果，供下一轮使用
+            min = min1;
+            minColor = minColor1;
+        }
+
+        // 最终 min 就是刷完所有房子的最小总花费
+        return min[0];
+    }
+
+    /**
      * 292. Nim 游戏
      * @param n
      * @return
