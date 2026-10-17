@@ -62,7 +62,7 @@ public class LeetCode3500 {
     }
 
     /**
-     * 3551. 数位和排序需要的最小交换次数（方法一：置换环）
+     * 3551. 数位和排序需要的最小交换次数（方法二：并查集）
      * 
      * 求把数组排成“按数位和升序、数位和相同则按数值升序”的目标顺序，
      * 最少需要多少次相邻交换。
@@ -71,7 +71,7 @@ public class LeetCode3500 {
      *   1. 先算出每个元素的数位和。
      *   2. 根据数位和、数值对下标排序，得到目标排列顺序。
      *   3. 把“当前下标 → 目标下标”的映射看成若干置换环。
-     *   4. 一个长度为 k 的环，最少需要 k - 1 次交换还原。
+     *   4. 用并查集统计连通分量个数 components，等价于环的个数。
      *   5. 总交换次数 = n - 环数。
      *
      * 时间复杂度 O(n log n)，空间复杂度 O(n)。
@@ -124,31 +124,46 @@ public class LeetCode3500 {
             targetPos[indices[i]] = i;
         }
 
-        // 用 visited 标记哪些位置已经处理过
-        boolean[] visited = new boolean[n];
-
-        // cycles 记录置换环的个数
-        int cycles = 0;
-
-        // 遍历每个位置，找出所有置换环
+        // 并查集初始化：每个位置各自是一个独立的集合
+        int[] parent = new int[n];
         for (int i = 0; i < n; i++) {
-            if (!visited[i]) {
-                // 发现一个新的环
-                cycles++;
+            parent[i] = i;
+        }
 
-                // 沿着 targetPos 走一圈，把整个环标记为已访问
-                int j = i;
-                while (!visited[j]) {
-                    visited[j] = true;
-                    // 跳到当前元素应该去的目标位置
-                    j = targetPos[j];
-                }
+        // components 表示当前连通分量的个数，初始时每个位置独立，所以等于 n
+        int components = n;
+
+        // 遍历每个位置，把“当前位置 i”和“它应该去的目标位置 targetPos[i]”合并到同一个集合
+        for (int i = 0; i < n; i++) {
+            // 当前位置 i 所在集合的根
+            int ri = find(parent, i);
+            // 目标位置 targetPos[i] 所在集合的根
+            int rj = find(parent, targetPos[i]);
+
+            if (ri != rj) {
+                // 如果两者不在同一个集合，合并它们，连通分量数减 1
+                parent[ri] = rj;
+                components--;
             }
         }
 
         // 每个长度为 k 的环需要 k-1 次交换
-        // 所有环加起来：Σ(k-1) = Σk - 环数 = n - cycles
-        return n - cycles;
+        // 所有环加起来：Σ(k-1) = Σk - 环数 = n - components
+        return n - components;
+    }
+
+    /**
+     * 并查集查找：带路径压缩。
+     *
+     * 找到 x 所在集合的根节点，并在回溯过程中把沿途节点的父节点直接指向根，
+     * 这样下次查找会更快。
+     */
+    private int find(int[] parent, int x) {
+        if (parent[x] != x) {
+            // 路径压缩
+            parent[x] = find(parent, parent[x]);
+        }
+        return parent[x];
     }
 
     /**
