@@ -6,8 +6,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.apple.laf.resources.aqua;
-
 public class LeetCode2900 {
     /**
      * 2904. 最短且字典序最小的美丽子字符串
