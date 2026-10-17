@@ -1,5 +1,11 @@
 package pkg2000;
 
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 public class LeetCode2900 {
     /**
      * 2904. 最短且字典序最小的美丽子字符串
@@ -41,6 +47,93 @@ public class LeetCode2900 {
         }
 
         return ans;
+    }
+
+    /**
+     * 2913. 子数组不同元素数目的平方和 I
+     * @param heights
+     * @param queries
+     * @return
+     */
+    public int sumCounts(List<Integer> nums) {
+        int n = nums.size(), ans = 0;
+
+        // 枚举 nums[i...j] 子数组
+        for (int i = 0; i < n; i++) {
+            // 存储当前子数组中的元素
+            Set<Integer> set = new HashSet<>();
+            for (int j = i; j < n; j++) {
+                set.add(nums.get(j));
+                int s = set.size();
+                ans += s * s;
+            }
+        }
+
+        return ans;
+    }
+
+    /**
+     * 2916. 子数组不同元素数目的平方和 II
+     * 求所有子数组的“不同元素个数”之和。
+     *
+     * 思路：按右端点 i 从左到右扫描，维护以 i 结尾的所有子数组的不同元素个数之和 cur。
+     *
+     * 关键观察：
+     *   当新元素 A[i] 加入时，只有那些“左端点在上一次 A[i] 出现位置之后”的子数组，
+     *   才会因为 A[i] 而新增一个不同元素。
+     *
+     *   设 A[i] 上一次出现的位置是 prev，则左端点 j ∈ [prev+1, i] 的子数组
+     *   都会 +1。用 BIT 对这些位置区间加 1，就能快速求出增量 q。
+     *
+     * 递推：
+     *   q = bit.query(j, i)          // 有多少个以 i 结尾的子数组新增了 A[i]
+     *   cur = cur + 2*q + (i - j + 1) // 展开 (v+1)^2 - v^2 = 2v + 1 对所有受影响位置求和
+     *   res += cur
+     *
+     * 时间复杂度 O(n log n)，空间 O(n)。
+     */
+    public int sumCounts(int[] nums) {
+        int n = nums.length;
+        // 最终答案：所有子数组不同元素个数之和
+        long res = 0;
+        // 当前以 i 结尾的所有子数组的不同元素个数之和
+        long cur = 0;
+
+        // BIT 大小要能覆盖下标 0..n，所以开 n+10 留余量
+        BIT bit = new BIT(n + 10);
+
+        // 记录每个值上一次出现的下标
+        Map<Integer, Integer> seen = new HashMap<>();
+
+        long mod = 1_000_000_007;
+
+        for (int i = 0; i < n; i++) {
+            int num = nums[i];
+
+            // j = 上一次出现位置 + 1，即“新增贡献的左端点起点”
+            // 如果 num 没出现过，seen 返回 -1，j = 0，表示所有左端点都受影响
+            int j = seen.getOrDefault(num, -1) + 1;
+
+            // q = 当前 BIT 中 [j, i] 的和，也就是这些位置当前的“不同元素个数”之和
+            // 但注意：此时还没把 A[i] 加进去，所以 q 其实是“加之前”的值
+            long q = bit.query(j, i);
+
+            // 把 A[i] 的影响加进去：
+            //   对每个受影响的左端点 v，贡献从 v^2 变成 (v+1)^2，增量 = 2v + 1
+            //   对所有受影响位置求和：2 * Σv + 个数 = 2*q + (i - j + 1)
+            cur = (cur + q * 2 + i - j + 1) % mod;
+
+            // 累加到总答案
+            res = (res + cur) % mod;
+
+            // 真正在 BIT 上把 [j, i] 区间加 1，表示这些左端点的子数组现在多了一个不同元素 A[i]
+            bit.add(j, i, 1);
+
+            // 更新 A[i] 的最新出现位置
+            seen.put(num, i);
+        }
+
+        return (int) res;
     }
 
     /**
@@ -143,4 +236,122 @@ public class LeetCode2900 {
         // 4. 如果左子树没找到，或者起始位置 pos 已经在右子树范围内，则去右子树寻找
         return query(segmentTree, pos, val, m + 1, r, rt * 2 + 2);
     }
+}
+
+/**
+ * 差分数组 + 双树状数组（BIT）实现区间加、区间求和。
+ *
+ * 普通树状数组只能做“单点加、前缀和”。
+ * 这里用两个树状数组配合差分思想，支持：
+ *   - 区间加 delta
+ *   - 区间求和 sum[l..r]
+ *
+ * 核心公式：
+ *   设差分数组 d，则原数组 a[i] = d[1] + d[2] + ... + d[i]
+ *   前缀和 prefix(r) = Σ a[i] (i=1..r)
+ *                     = Σ (r+1 - j) * d[j]   (j=1..r)
+ *                     = (r+1) * Σ d[j] - Σ j * d[j]
+ *
+ * 所以维护两棵树：
+ *   tree1 存 d[j]
+ *   tree2 存 j * d[j]
+ * 查询时 prefix(r) = (r+1) * queryTree1(r) - queryTree2(r)
+ */
+class BIT {
+    // 树状数组大小（对应原数组长度）
+    int size;
+    // 维护差分值 d[j]
+    long[] _tree1;
+    // 维护 j * d[j]
+    long[] _tree2;
+
+    public BIT(int n) {
+        this.size = n;
+        // 树状数组下标从 1 开始，多开一点防止越界
+        this._tree1 = new long[n + 2];
+        this._tree2 = new long[n + 2];
+    }
+
+    /**
+     * lowbit：取二进制最低位的 1。
+     * 例如 lowbit(6) = lowbit(110) = 010 = 2
+     * 树状数组用它来定位父节点 / 子节点。
+     */
+    private int _lowbit(int index) {
+        return index & -index;
+    }
+
+    /**
+     * 对外接口：对原数组区间 [left, right] 每个位置加 delta。
+     *
+     * 差分技巧：
+     *   d[left]   += delta
+     *   d[right+1] -= delta
+     * 这样前缀和从 left 开始都多了 delta，到 right+1 又减回去，
+     * 效果就是 [left, right] 整体 +delta。
+     */
+    public void add(int left, int right, int delta) {
+        _add(left, delta);
+        _add(right + 1, -delta);
+    }
+
+    /**
+     * 内部：在差分数组的 index 位置加 delta，并同步更新两棵树。
+     *
+     * index += 1 是因为外部传入的下标从 0 开始，
+     * 而树状数组内部下标从 1 开始。
+     * rawIndex 保存转换后的下标，用于计算 j * delta。
+     */
+    private void _add(int index, int delta) {
+        // 0-based → 1-based
+        index += 1;
+        long rawIndex = index;
+        while (index <= size) {
+            // 累加 d[j]
+            _tree1[index] += delta;
+            // 累加 j * d[j]
+            _tree2[index] += rawIndex * delta;
+            // 跳到父节点
+            index += _lowbit(index);
+        }
+    }
+
+    /**
+     * 对外接口：查询原数组区间 [left, right] 的和。
+     * 利用前缀和相减：sum[l..r] = prefix(r) - prefix(l-1)
+     */
+    public long query(int left, int right) {
+        return _query(right) - _query(left - 1);
+    }
+
+    /**
+     * 内部：查询原数组前缀和 prefix(index)，即 a[0] + a[1] + ... + a[index]。
+     *
+     * 公式：prefix(r) = (r+1) * Σ d[j] - Σ j*d[j]
+     * 对应代码：res += rawIndex * _tree1[index] - _tree2[index]
+     *
+     * 注意这里的 rawIndex = index + 1 = (外部下标 + 1) + 1 = 外部下标 + 2，
+     * 也就是公式里的 (r+1)。
+     */
+    private long _query(int index) {
+        // 0-based → 1-based
+        index += 1;
+        // 公式里的 (r+1)
+        long rawIndex = index + 1;
+
+        // 越界保护
+        if (index > size) {
+            index = size;
+        }
+
+        long res = 0;
+        while (index > 0) {
+            res += rawIndex * _tree1[index] - _tree2[index];
+            // 跳到下一个子节点
+            index -= _lowbit(index);
+        }
+
+        return res;
+    }
+    
 }

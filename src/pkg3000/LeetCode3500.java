@@ -62,6 +62,111 @@ public class LeetCode3500 {
     }
 
     /**
+     * 3551. 数位和排序需要的最小交换次数（方法二：并查集）
+     * 
+     * 求把数组排成“按数位和升序、数位和相同则按数值升序”的目标顺序，
+     * 最少需要多少次相邻交换。
+     *
+     * 核心思路：
+     *   1. 先算出每个元素的数位和。
+     *   2. 根据数位和、数值对下标排序，得到目标排列顺序。
+     *   3. 把“当前下标 → 目标下标”的映射看成若干置换环。
+     *   4. 用并查集统计连通分量个数 components，等价于环的个数。
+     *   5. 总交换次数 = n - 环数。
+     *
+     * 时间复杂度 O(n log n)，空间复杂度 O(n)。
+     * 
+     * @param nums
+     * @return
+     */
+    public int minSwaps(int[] nums) {
+        int n = nums.length;
+
+        // digitSum[i] 表示 nums[i] 的数位和，例如 132 -> 1+3+2 = 6
+        int[] digitSum = new int[n];
+        for (int i = 0; i < n; i++) {
+            int x = nums[i];
+            int sum = 0;
+            
+            // 逐位取出数字并累加
+            while (x > 0) {
+                // 取最低位
+                sum += x % 10;
+                // 去掉最低位
+                x /= 10;
+            }
+
+            digitSum[i] = sum;
+        }
+
+        // indices 存的是原始下标 [0, 1, 2, ..., n-1]
+        // 后面通过对 indices 排序，间接得到“按规则排序后的下标顺序”
+        Integer[] indices = new Integer[n];
+        for (int i = 0; i < n; i++) {
+            indices[i] = i;
+        }
+
+        // 按目标规则排序：
+        //   第一关键字：数位和升序
+        //   第二关键字：数值升序
+        // 排序后，indices[pos] 表示“目标位置 pos 上应该放原始下标 indices[pos] 的元素”
+        Arrays.sort(indices, (a, b) -> {
+            if (digitSum[a] != digitSum[b]) {
+                return Integer.compare(digitSum[a], digitSum[b]);
+            }
+            return Integer.compare(nums[a], nums[b]);
+        });
+
+        // targetPos[i] 表示：原始下标 i 的元素，在目标排列中应该去哪个位置
+        // 例如 targetPos[3] = 5 表示原来在位置 3 的元素，目标位置是 5
+        int[] targetPos = new int[n];
+        for (int i = 0; i < n; i++) {
+            targetPos[indices[i]] = i;
+        }
+
+        // 并查集初始化：每个位置各自是一个独立的集合
+        int[] parent = new int[n];
+        for (int i = 0; i < n; i++) {
+            parent[i] = i;
+        }
+
+        // components 表示当前连通分量的个数，初始时每个位置独立，所以等于 n
+        int components = n;
+
+        // 遍历每个位置，把“当前位置 i”和“它应该去的目标位置 targetPos[i]”合并到同一个集合
+        for (int i = 0; i < n; i++) {
+            // 当前位置 i 所在集合的根
+            int ri = find(parent, i);
+            // 目标位置 targetPos[i] 所在集合的根
+            int rj = find(parent, targetPos[i]);
+
+            if (ri != rj) {
+                // 如果两者不在同一个集合，合并它们，连通分量数减 1
+                parent[ri] = rj;
+                components--;
+            }
+        }
+
+        // 每个长度为 k 的环需要 k-1 次交换
+        // 所有环加起来：Σ(k-1) = Σk - 环数 = n - components
+        return n - components;
+    }
+
+    /**
+     * 并查集查找：带路径压缩。
+     *
+     * 找到 x 所在集合的根节点，并在回溯过程中把沿途节点的父节点直接指向根，
+     * 这样下次查找会更快。
+     */
+    private int find(int[] parent, int x) {
+        if (parent[x] != x) {
+            // 路径压缩
+            parent[x] = find(parent, parent[x]);
+        }
+        return parent[x];
+    }
+
+    /**
      * 3568. 清理教室的最少移动
      * @param classroom
      * @param energy
