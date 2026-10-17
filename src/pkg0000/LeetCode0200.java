@@ -58,7 +58,7 @@ public class LeetCode0200 {
     }
 
     /**
-     * 256. 粉刷房子（动态规划）
+     * 256. 粉刷房子（动态规划：空间优化）
      * @param costs
      * @return
      */
@@ -67,21 +67,25 @@ public class LeetCode0200 {
         int n = costs.length;
 
         // dp[i][j] -> 前 i 个房子中，第 i 个房子粉刷为 j 颜色的最少花费成本
-        int[][] dp = new int[n][3];
+        int[] dp = new int[3];
 
         // dp 边界情况
         for (int j = 0; j < 3; j++) {
-            dp[0][j] = costs[0][j];
+            dp[j] = costs[0][j];
         }
 
         // dp 状态转移方程
         for (int i = 1; i < n; i++) {
-            dp[i][0] = Math.min(dp[i - 1][1], dp[i - 1][2]) + costs[i][0];
-            dp[i][1] = Math.min(dp[i - 1][0], dp[i - 1][2]) + costs[i][1];
-            dp[i][2] = Math.min(dp[i - 1][0], dp[i - 1][1]) + costs[i][2];
+            int[] dpPre = new int[3];
+            dpPre[0] = dp[0];
+            dpPre[1] = dp[1];
+            dpPre[2] = dp[2];
+            dp[0] = Math.min(dpPre[1], dpPre[2]) + costs[i][0];
+            dp[1] = Math.min(dpPre[0], dpPre[2]) + costs[i][1];
+            dp[2] = Math.min(dpPre[0], dpPre[1]) + costs[i][2];
         }
 
-        return Math.min(Math.min(dp[n - 1][0], dp[n - 1][1]), dp[n - 1][2]);
+        return Math.min(Math.min(dp[0], dp[1]), dp[2]);
     }
 
     /**
