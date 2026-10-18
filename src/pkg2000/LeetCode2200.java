@@ -109,7 +109,7 @@ public class LeetCode2200 {
     }
 
     /**
-     * 2218. 从栈中取出 K 个硬币的最大面值和（分组背包 DP）
+     * 2218. 从栈中取出 K 个硬币的最大面值和（分组背包 DP，空间优化）
      *
      * 核心思路：
      *   1. 每堆硬币只能从顶部连续取，取前 p 个的价值 = 前缀和 cost[i][p]。
@@ -132,12 +132,8 @@ public class LeetCode2200 {
         // cost[i][0] = 0，表示从第 i 堆取 0 个硬币，价值为 0
         List<Integer>[] cost = new List[n];
 
-        // cnt[i] -> 第 i 堆中有多少枚硬币
-        int[] cnt = new int[n];
-
         // 预处理：计算每堆的前缀和，方便 O(1) 查询"取前 p 个的价值"
         for (int i = 0; i < n; i++) {
-            cnt[i] = piles.get(i).size();
             cost[i] = new ArrayList<>();
             // 取 0 个，价值为 0
             cost[i].add(0);
@@ -147,31 +143,28 @@ public class LeetCode2200 {
             }
         }
 
-        // dp[i][j] -> 从前 i 堆中恰好取 j 个硬币，能获得的最大面值和
-        // 默认值为 0，表示不取任何硬币时价值为 0
-        int[][] dp = new int[n + 1][k + 1];
+        // dp[j]：当前已考虑过的堆中，恰好取 j 枚硬币的最大面值和
+        int[] dp = new int[k + 1];
 
         // 动态规划：逐堆考虑，枚举取多少个
-        for (int i = 1; i <= n; i++) {
+        for (int i = 0; i < n; i++) {
             // 第 i 堆的硬币总数
-            int m = cnt[i - 1];
-            for (int j = 1; j <= k; j++) {
-                // 先继承“第 i 堆取 0 个”的情况
-                dp[i][j] = dp[i - 1][j];
-
+            int m = piles.get(i).size();
+            // ⚠️ j 必须从大到小遍历，保证 dp[j-p] 仍是上一轮（前 i-1 堆）的值
+            for (int j = k; j >= 1; j--) {
                 // 第 i 堆最多有 cnt[i-1] 个硬币（注意 piles 下标从 0 开始）
                 // 如果第 i 堆的硬币数 >= j，才有可能从这一堆取 j 个
                 // 实际上这个判断可以去掉，因为下面的 p <= Math.min(j, m) 已经做了限制
                 for (int p = 0; p <= Math.min(j, m); p++) {
-                    // 从第 i 堆取 p 个，价值为 cost[i-1][p]
-                    // 从前 i-1 堆取 j-p 个，价值为 dp[i-1][j-p]
-                    dp[i][j] = Math.max(dp[i][j], cost[i - 1].get(p) + dp[i - 1][j - p]);
+                    // 从第 i 堆取 p 个，价值为 cost[i][p]
+                    // 从前 i-1 堆取 j-p 个，价值为 dp[j-p]
+                    dp[j] = Math.max(dp[j], cost[i].get(p) + dp[j - p]);
                 }
             }
         }
 
         // 从前 n 堆中恰好取 k 个硬币的最大面值和
-        return dp[n][k];
+        return dp[k];
     }
 
     /**
