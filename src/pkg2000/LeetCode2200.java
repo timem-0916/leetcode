@@ -109,6 +109,65 @@ public class LeetCode2200 {
     }
 
     /**
+     * 2218. 从栈中取出 K 个硬币的最大面值和（分组背包 DP，空间优化）
+     *
+     * 核心思路：
+     *   1. 每堆硬币只能从顶部连续取，取前 p 个的价值 = 前缀和 cost[i][p]。
+     *   2. 问题转化为分组背包：n 组物品，第 i 组可选 0~cnt[i] 个，总容量 k，求最大价值。
+     *   3. dp[i][j] 表示从前 i 堆中恰好取 j 个硬币能获得的最大面值和。
+     *   4. 转移：枚举第 i 堆取 p 个，dp[i][j] = max(cost[i-1][p] + dp[i-1][j-p])。
+     *
+     * 时间复杂度 O(n * k * max(cnt[i]))，空间复杂度 O(n * k)。
+     * 
+     * @param piles
+     * @param k
+     * @return
+     */
+    @SuppressWarnings("unchecked")
+    public int maxValueOfCoins(List<List<Integer>> piles, int k) {
+        // 一共有 n 个硬币栈
+        int n = piles.size();
+
+        // cost[i][j] -> 从第 i 堆中选取前 j 个硬币的面值总和（前缀和）
+        // cost[i][0] = 0，表示从第 i 堆取 0 个硬币，价值为 0
+        List<Integer>[] cost = new List[n];
+
+        // 预处理：计算每堆的前缀和，方便 O(1) 查询"取前 p 个的价值"
+        for (int i = 0; i < n; i++) {
+            cost[i] = new ArrayList<>();
+            // 取 0 个，价值为 0
+            cost[i].add(0);
+            for (int j = 0; j < piles.get(i).size(); j++) {
+                // 前 j+1 个的价值 = 前 j 个的价值 + 第 j 个硬币的面值
+                cost[i].add(piles.get(i).get(j) + cost[i].getLast());
+            }
+        }
+
+        // dp[j]：当前已考虑过的堆中，恰好取 j 枚硬币的最大面值和
+        int[] dp = new int[k + 1];
+
+        // 动态规划：逐堆考虑，枚举取多少个
+        for (int i = 0; i < n; i++) {
+            // 第 i 堆的硬币总数
+            int m = piles.get(i).size();
+            // ⚠️ j 必须从大到小遍历，保证 dp[j-p] 仍是上一轮（前 i-1 堆）的值
+            for (int j = k; j >= 1; j--) {
+                // 第 i 堆最多有 cnt[i-1] 个硬币（注意 piles 下标从 0 开始）
+                // 如果第 i 堆的硬币数 >= j，才有可能从这一堆取 j 个
+                // 实际上这个判断可以去掉，因为下面的 p <= Math.min(j, m) 已经做了限制
+                for (int p = 0; p <= Math.min(j, m); p++) {
+                    // 从第 i 堆取 p 个，价值为 cost[i][p]
+                    // 从前 i-1 堆取 j-p 个，价值为 dp[j-p]
+                    dp[j] = Math.max(dp[j], cost[i].get(p) + dp[j - p]);
+                }
+            }
+        }
+
+        // 从前 n 堆中恰好取 k 个硬币的最大面值和
+        return dp[k];
+    }
+
+    /**
      * 2236. 判断根结点是否等于子结点之和
      * @param root
      * @return
