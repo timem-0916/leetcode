@@ -1,6 +1,12 @@
 package pkg0000;
 
 
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
+
 import util.TreeNode;
 
 public class LeetCode0400 {
@@ -100,6 +106,67 @@ public class LeetCode0400 {
         Trie left = null;
         // 右子树指向表示 1 的子节点
         Trie right = null;
+    }
+
+    /**
+     * 432. 全 O(1) 的数据结构
+     */
+    class AllOne {
+
+        Map<String, Integer> map;
+        TreeMap<Integer, Set<String>> cnt;
+
+        public AllOne() {
+            map = new HashMap<>();
+            cnt = new TreeMap<>();
+        }
+        
+        public void inc(String key) {
+            int count = map.getOrDefault(key, 0);
+            if (count > 0) {
+                Set<String> set = cnt.get(count);
+                set.remove(key);
+                if (set.isEmpty()) {
+                    cnt.remove(count);
+                }
+            }
+            map.put(key, count + 1);
+            cnt.computeIfAbsent(count + 1, k -> new HashSet<>()).add(key);
+        }
+        
+        public void dec(String key) {
+            if (!map.containsKey(key)) {
+                return;
+            }
+
+            int count = map.get(key);
+            Set<String> set = cnt.get(count);
+            set.remove(key);
+            if (set.isEmpty()) {
+                cnt.remove(count);
+            }
+
+            if (count == 1) {
+                map.remove(key);
+            } else {
+                map.put(key, count - 1);
+                cnt.computeIfAbsent(count - 1, k -> new HashSet<>()).add(key);
+            }
+        }
+        
+        public String getMaxKey() {
+            if (cnt.isEmpty()) {
+                return "";
+            }
+            return cnt.lastEntry().getValue().iterator().next();
+        }
+        
+        public String getMinKey() {
+            if (cnt.isEmpty()) {
+                return "";
+            }
+            return cnt.firstEntry().getValue().iterator().next();
+        }
     }
 
     /**
