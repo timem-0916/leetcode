@@ -3,7 +3,9 @@ package pkg0000;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 
 public class LeetCode0300 {
 
@@ -209,6 +211,106 @@ public class LeetCode0300 {
                 // 左半部分查 [left, m]，右半部分查 [m + 1, right]
                 return range(left, m, node * 2 + 1, s, m) + range(m + 1, right, node * 2 + 2, m + 1, e);
             }
+        }
+    }
+
+    /**
+     * 352. 将数据流变为多个不相交区间
+     * 
+     * 数据流的不相交区间总结器。
+     *
+     * 核心思路：用 TreeMap 维护一组不相交、不重叠的区间 [left, right]，
+     * 其中 key 为区间左端点，value 为区间右端点。
+     * 每次插入新值时，判断它与相邻区间的关系，决定是忽略、扩展还是合并。
+     */
+    class SummaryRanges {
+
+        // key = 区间左端点，value = 区间右端点
+        // TreeMap 保证区间按左端点有序排列，便于快速查找相邻区间
+        TreeMap<Integer, Integer> intervals;
+
+        /** 初始化空的数据结构 */
+        public SummaryRanges() {
+            intervals = new TreeMap<>();
+        }
+        
+        /**
+         * 向数据流中添加一个整数 val，并更新区间集合。
+         *
+         * 处理逻辑分五种情况：
+         *   情况一：val 已经落在某个现有区间内 → 直接忽略。
+         *   情况二：val 恰好紧贴在左侧区间的右边（val = r0 + 1）→ 向左扩展该区间。
+         *   情况三：val 恰好紧贴在右侧区间的左边（val = l1 - 1）→ 向右扩展该区间（需更新 key）。
+         *   情况四：val 同时紧贴左右两个区间（r0 + 1 = val = l1 - 1）→ 合并三个为一个。
+         *   情况五：val 与任何区间都不相邻 → 新建一个单点区间 [val, val]。
+         */
+        public void addNum(int value) {
+            // 找到左端点严格大于 val 的第一个区间 interval1 = [l1, r1]
+            // 即 l1 是满足 l1 > val 的最小左端点
+            // 如果不存在，interval1 为 null
+            Map.Entry<Integer, Integer> interval1 = intervals.ceilingEntry(value + 1);
+            
+            // 找到左端点小于等于 val 的最大区间 interval0 = [l0, r0]
+            // 即 l0 是满足 l0 <= val 的最大左端点
+            // 如果不存在，interval0 为 null
+            Map.Entry<Integer, Integer> interval0 = intervals.floorEntry(value);
+
+            // 情况一：val 已经被 interval0 覆盖（l0 <= val <= r0），无需任何操作
+            if (interval0 != null && interval0.getKey() <= value && value <= interval0.getValue()) {
+                return;
+            }
+
+            // 判断 val 是否与左侧区间相邻：interval0 的右端点 + 1 == val
+            boolean leftAside = interval0 != null && interval0.getValue() + 1 == value;
+            // 判断 val 是否与右侧区间相邻：interval1 的左端点 - 1 == val
+            boolean rightAside = interval1 != null && interval1.getKey() - 1 == value;
+
+            if (leftAside && rightAside) {
+                // 情况四：val 同时连接左右两个区间，需要合并
+                // 合并后的新区间为 [l0, r1]
+                int left = interval0.getKey(), right = interval1.getValue();
+                // 删除左区间
+                intervals.remove(interval0.getKey());
+                // 删除右区间
+                intervals.remove(interval1.getKey());
+                // 插入合并后的区间
+                intervals.put(left, right);
+            } else if (leftAside) {
+                // 情况二：val 只与左侧区间相邻，将左区间的右端点扩展至 val
+                intervals.put(interval0.getKey(), interval0.getValue() + 1);
+            } else if (rightAside) {
+                // 情况三：val 只与右侧区间相邻
+                // 需要将新区间的左端点从 interval1.getKey() 改为 val
+                int right = interval1.getValue();
+                // 删除旧的右区间
+                intervals.remove(interval1.getKey());
+                // 以 val 为新左端点插入
+                intervals.put(value, right);
+            } else {
+                // 情况五：val 与任何区间都不相邻，新建一个单点区间 [val, val]
+                intervals.put(value, value);
+            }
+        }
+        
+        /**
+         * 返回当前所有不相交区间的二维数组表示。
+         *
+         * 由于 TreeMap 已经按左端点有序，直接遍历输出即可。
+         *
+         * @return 形如 [[l1, r1], [l2, r2], ...] 的区间数组
+         */
+        public int[][] getIntervals() {
+            int size = intervals.size();
+            int[][] ans = new int[size][2];
+            int index = 0;
+            // 按左端点从小到大的顺序遍历所有区间
+            for (Map.Entry<Integer, Integer> entry : intervals.entrySet()) {
+                int left = entry.getKey(), right = entry.getValue();
+                ans[index][0] = left;
+                ans[index][1] = right;
+                index++;
+            }
+            return ans;
         }
     }
 }
