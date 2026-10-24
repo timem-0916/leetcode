@@ -412,15 +412,21 @@ public class LeetCode0300 {
                 lastSet.remove(lastIdx);
                 lastSet.add(index);
             }
-            
+
             list.removeLast();
             return true;
         }
         
         public int getRandom() {
-            int size = list.size();
-            int index = random.nextInt(size);
-            return list.get(index);
+            int total = list.size();
+            int r = random.nextInt(total);
+            for (Map.Entry<Integer, Set<Integer>> entry : map.entrySet()) {
+                r -= entry.getValue().size();
+                if (r < 0) {
+                    return entry.getKey();
+                }
+            }
+            return 0;
         }
     }
 }
