@@ -1,9 +1,11 @@
 package pkg0000;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 import java.util.TreeMap;
 
@@ -311,6 +313,52 @@ public class LeetCode0300 {
                 index++;
             }
             return ans;
+        }
+    }
+
+    /**
+     * 380. O(1) 时间插入、删除和获取随机元素
+     * RandomizedSet
+     */
+    class RandomizedSet {
+        List<Integer> list;
+        Map<Integer, Integer> map;
+        Random random;
+
+        public RandomizedSet() {
+            list = new ArrayList<>();
+            map = new HashMap<>();
+            random = new Random();
+        }
+        
+        public boolean insert(int val) {
+            if (map.containsKey(val)) {
+                return false;
+            }
+            int size = list.size();
+            list.add(val);
+            map.put(val, size);
+            return true;
+        }
+        
+        public boolean remove(int val) {
+            if (!map.containsKey(val)) {
+                return false;
+            }
+            int size = list.size();
+            int index = map.get(val);
+            int last = list.getLast();
+            list.set(index, last);
+            map.put(last, index);
+            list.remove(size - 1);
+            map.remove(val);
+            return true;
+        }
+        
+        public int getRandom() {
+            int size = list.size();
+            int index = random.nextInt(size);
+            return list.get(index);
         }
     }
 }
