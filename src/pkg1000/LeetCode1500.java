@@ -7,6 +7,12 @@ import java.util.List;
 import java.util.Map;
 
 public class LeetCode1500 {
+
+    /**
+     * 模数，防止大数溢出，题目通常要求对 10^9+7 取模
+     */
+    private static final int MOD = 1_000_000_007;
+
     /**
      * 1520. 最多的不重叠子字符串
      * @param s
@@ -182,6 +188,125 @@ public class LeetCode1500 {
     }
 
     /**
+     * 1569. 将子数组重新排序得到同一个二叉搜索树的方案数
+     * 
+     * 计算与给定数组生成相同二叉搜索树（BST）的不同排列方案数（不含自身）。
+     *
+     * 核心思路：
+     *   1. 根据数组 nums 构建一棵二叉搜索树（BST）。
+     *   2. 对于每个节点，其左右子树的插入顺序可以交错，但必须保持各自子树内部的相对顺序。
+     *      若左子树有 L 个节点，右子树有 R 个节点，则交错方案数为 C(L+R, L)。
+     *   3. 递归地对每个节点计算：当前子树的合法排列数 = C(L+R, L) × 左子树方案数 × 右子树方案数。
+     *   4. 最终答案需减去 1（排除掉原数组本身这一种排列）。
+     * 
+     * @param nums
+     * @return
+     */
+    public int numOfWays(int[] nums) {
+        int n = nums.length;
+
+        // 组合数表（杨辉三角），c[i][j] 表示 C(i, j)，即从 i 个元素中选 j 个的方案数
+        long[][] C = new long[n][n];
+
+        // 只有一个节点，不存在其他排列，返回 0
+        if (n == 1) {
+            return 0;
+        }
+
+        // 第一步：预计算组合数表（杨辉三角），用于后续快速查询 C(n, k)
+        C[0][0] = 1;
+        for (int i = 1; i < n; i++) {
+            // C(i, 0) = 1
+            C[i][0] = 1;
+            for (int j = 1; j < n; j++) {
+                // 递推公式：C(i, j) = C(i-1, j-1) + C(i-1, j)
+                C[i][j] = (C[i - 1][j - 1] + C[i - 1][j]) % MOD;
+            }
+        }
+
+        // 第二步：根据数组顺序构建二叉搜索树
+        // 第一个元素作为根节点
+        TreeNode root = new TreeNode(nums[0]);
+        for (int i = 1; i < n; i++) {
+            // 将每个元素按 BST 规则插入树中
+            numOfWaysInsert(root, nums[i]);
+        }
+
+        // 第三步：后序遍历（DFS），自底向上计算每个子树的合法排列数
+        numOfWaysDfs(root, C);
+
+        // 第四步：root.ans 包含了原数组本身，题目要求排除自身，所以减 1
+        // 加 MOD 再取模是为了防止减 1 后出现负数
+        return (root.ans - 1 + MOD) % MOD;
+    }
+
+    /**
+     * 将 value 插入到以 root 为根的 BST 中。
+     * 插入过程中，沿途经过的每个节点的 size 都加 1（用于记录子树节点总数）。
+     */
+    private void numOfWaysInsert(TreeNode root, int value) {
+        TreeNode cur = root;
+        while (true) {
+            // 每经过一个节点，该节点的子树节点数 +1
+            cur.size++;
+
+            if (value < cur.size) {
+                // 值比当前节点小，应插入左子树
+                if (cur.left == null) {
+                    // 左子节点为空，直接插入
+                    cur.left = new TreeNode(value);
+                    return;
+                }
+                // 继续向左子树深入
+                cur = cur.left;
+            } else {
+                // 值比当前节点大（或相等），应插入右子树
+                if (cur.right == null) {
+                    // 右子节点为空，直接插入
+                    cur.right = new TreeNode(value);
+                    return;
+                }
+                // 继续向右子树深入
+                cur = cur.right;
+            }
+        }
+    }
+
+    /**
+     * 后序遍历 DFS，计算以 node 为根的子树中，能生成相同 BST 结构的排列方案数。
+     *
+     * 递归逻辑：
+     *   1. 先递归计算左子树和右子树各自的方案数。
+     *   2. 当前节点的方案数 = C(左子树节点数 + 右子树节点数, 左子树节点数)
+     *                          × 左子树方案数 × 右子树方案数。
+     *   3. 组合数 C(L+R, L) 表示：在保持左右子树内部相对顺序不变的前提下，
+     *      将左右子树的插入序列交错合并的方案数。
+     */
+    private void numOfWaysDfs(TreeNode node, long[][] C) {
+        if (node == null) {
+            return;
+        }
+
+        // 后序遍历：先处理左右子树
+        numOfWaysDfs(node.left, C);
+        numOfWaysDfs(node.right, C);
+
+        // 获取左子树的节点数和方案数
+        int lSize = node.left == null ? 0 : node.left.size;
+        // 空子树方案数为 1（乘法单位元）
+        int lAns = node.left == null ? 1 : node.left.ans;
+
+        // 获取右子树的节点数和方案数
+        int rSize = node.right == null ? 0 : node.right.size;
+        // 空子树方案数为 1
+        int rAns = node.right == null ? 0 : node.right.ans;
+
+        // 当前子树的总方案数 = 交错合并方案数 × 左子树方案数 × 右子树方案数
+        // c[lsize + rsize][lsize] 即 C(lsize + rsize, lsize)
+        node.ans = (int) (C[lSize + rSize][lSize] % MOD * lAns % MOD * rAns % MOD);
+    }
+
+    /**
      * 1584. 连接所有点的最小费用
      * @param points
      * @return
@@ -258,5 +383,32 @@ public class LeetCode1500 {
         public int getCount() {
             return count;
         }
+    }
+}
+
+/**
+ * 二叉搜索树节点定义。
+ * value：节点的值
+ * size：以该节点为根的子树中的节点总数（包括自身）
+ * ans：以该节点为根的子树中，能生成相同 BST 结构的排列方案数
+ */
+class TreeNode {
+    // 左子节点
+    TreeNode left;
+    // 右子节点
+    TreeNode right;
+    // 节点值
+    int value;
+    // 子树节点总数
+    int size;
+    // 该子树的合法排列方案数
+    int ans;
+
+    TreeNode(int value) {
+        this.value = value;
+        // 初始化时子树只有自身一个节点
+        this.size = 1;
+        // ans 将在 DFS 中计算
+        this.ans = 0;
     }
 }
