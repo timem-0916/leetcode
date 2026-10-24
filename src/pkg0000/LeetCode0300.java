@@ -3,6 +3,7 @@ package pkg0000;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -352,6 +353,67 @@ public class LeetCode0300 {
             map.put(last, index);
             list.remove(size - 1);
             map.remove(val);
+            return true;
+        }
+        
+        public int getRandom() {
+            int size = list.size();
+            int index = random.nextInt(size);
+            return list.get(index);
+        }
+    }
+
+    /**
+     * 381. O(1) 时间插入、删除和获取随机元素 - 允许重复
+     */
+    class RandomizedCollection {
+
+        List<Integer> list;
+        Map<Integer, Set<Integer>> map;
+        Random random;
+
+        public RandomizedCollection() {
+            list = new ArrayList<>();
+            map = new HashMap<>();
+            random = new Random();
+        }
+        
+        public boolean insert(int val) {
+            int size = list.size();
+            list.add(val);
+            boolean res = false;
+            if (!map.containsKey(val)) {
+                res = true;
+                map.put(val, new HashSet<>());
+            }
+            map.get(val).add(size);
+            return res;
+        }
+        
+        public boolean remove(int val) {
+            if (!map.containsKey(val)) {
+                return false;
+            }
+
+            Iterator<Integer> it = map.get(val).iterator();
+            int index = it.next();
+            it.remove();
+            if (map.get(val).isEmpty()) {
+                map.remove(val);
+            }
+
+            int lastIdx = list.size() - 1;
+
+            if (index != lastIdx) {
+                int lastVal = list.get(lastIdx);
+                list.set(index, lastVal);
+
+                Set<Integer> lastSet = map.get(lastVal);
+                lastSet.remove(lastIdx);
+                lastSet.add(index);
+            }
+            
+            list.removeLast();
             return true;
         }
         
