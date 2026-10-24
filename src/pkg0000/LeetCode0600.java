@@ -4,6 +4,62 @@ package pkg0000;
 import util.TreeNode;
 
 public class LeetCode0600 {
+
+    /**
+     * 622. 设计循环队列
+     */
+    class MyCircularQueue {
+
+        int[] elements;
+        int front;
+        int rear;
+
+        public MyCircularQueue(int k) {
+            elements = new int[k + 1];
+            front = 0;
+            rear = 0;
+        }
+        
+        public boolean enQueue(int value) {
+            if (isFull()) {
+                return false;
+            }
+            elements[rear] = value;
+            rear = (rear + 1) % elements.length;
+            return true;
+        }
+        
+        public boolean deQueue() {
+            if (isEmpty()) {
+                return false;
+            }
+            front = (front + 1) % elements.length;
+            return true;
+        }
+        
+        public int Front() {
+            if (isEmpty()) {
+                return -1;
+            }
+            return elements[front];
+        }
+        
+        public int Rear() {
+            if (isEmpty()) {
+                return -1;
+            }
+            return elements[(rear - 1 + elements.length) % elements.length];
+        }
+        
+        public boolean isEmpty() {
+            return rear == front;
+        }
+        
+        public boolean isFull() {
+            return ((rear + 1) % elements.length) == front;
+        }
+    }
+
     /**
      * 669. 修剪二叉搜索树
      * @param root
