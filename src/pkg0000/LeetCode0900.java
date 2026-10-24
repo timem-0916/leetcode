@@ -4,9 +4,31 @@ import java.util.List;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Deque;
 import java.util.Queue;
 
 public class LeetCode0900 {
+
+    /**
+     * 901. 股票价格跨度
+     */
+    class StockSpanner {
+        
+        private final Deque<int[]> stack;
+
+        public StockSpanner() {
+            stack = new ArrayDeque<>();
+        }
+        
+        public int next(int price) {
+            int span = 1;
+            while (!stack.isEmpty() && stack.peek()[0] <= price) {
+                span += stack.pop()[1];
+            }
+            stack.push(new int[]{price, span});
+            return span;
+        }
+    }
 
     /**
      * 913. 猫和老鼠
