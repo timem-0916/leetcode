@@ -2,6 +2,7 @@ package pkg0000;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.TreeMap;
 
 import util.TreeNode;
 
@@ -43,6 +44,198 @@ public class LeetCode0700 {
             root.right = insertIntoBST(root.right, val);
         }
         return root;
+    }
+
+    /**
+     * 715. Range 模块
+     * 
+     * 区间模块：维护一组不相交的半开区间 [left, right)，支持添加、查询和删除操作。
+     *
+     * 数据结构：
+     *   使用 TreeMap<Integer, Integer> 存储区间，key 为区间左端点，value 为区间右端点。
+     *   TreeMap 按 key（左端点）升序排列，便于快速查找与给定位置相交的区间。
+     *
+     * 区间表示：
+     *   所有区间均为半开区间 [left, right)，即包含 left，不包含 right。
+     *   例如 [10, 20) 表示覆盖 10 到 19 的所有整数（或实数范围内 10 ≤ x < 20）。
+     */
+    class RangeModule {
+
+        // 存储所有不相交的区间，key=左端点，value=右端点
+        TreeMap<Integer, Integer> intervals;
+
+        /**
+         * 初始化区间模块，创建一个空的 TreeMap。
+         */
+        public RangeModule() {
+            intervals = new TreeMap<>();
+        }
+
+        /**
+         * 添加区间 [left, right)，即将该范围内的所有点标记为"已覆盖"。
+         *
+         * 核心思路：
+         *   1. 找到可能与 [left, right) 相交的已有区间。
+         *   2. 如果左侧有重叠区间，向左扩展 left 并删除该区间。
+         *   3. 向右遍历所有与 [left, right) 相交的区间，扩展 right 并删除它们。
+         *   4. 最后插入合并后的新区间 [left, right)。
+         *
+         * @param left  区间左端点（包含）
+         * @param right 区间右端点（不包含）
+         */
+        public void addRange(int left, int right) {
+            // higherEntry(left)：找到左端点严格大于 left 的第一个区间
+            // 这个区间可能与 [left, right) 相交（如果它的左端点 < right）
+            Map.Entry<Integer, Integer> entry = intervals.higherEntry(left);
+
+            // 如果 TreeMap 不为空，且找到的 entry 不是第一个区间，
+            // 说明可能存在一个左端点 ≤ left 的区间与 [left, right) 相交
+            if (entry != intervals.firstEntry()) {
+                // start：左端点 ≤ left 的最大区间（即可能与 [left, right) 左侧相交的区间）
+                // 如果 entry 为 null（所有区间的左端点都 ≤ left），则取最后一个区间
+                Map.Entry<Integer, Integer> start = entry != null ? intervals.lowerEntry(entry.getKey()) : intervals.lastEntry();
+
+                // 情况1：start 区间完全覆盖 [left, right)，无需任何操作
+                // 即 start 的右端点 ≥ right，说明 [left, right) 已被完全包含
+                if (start != null && start.getValue() >= right) {
+                    return;
+                }
+
+                // 情况2：start 区间与 [left, right) 部分重叠（start 的右端点 ≥ left）
+                // 需要将 left 扩展到 start 的左端点，并删除 start 区间
+                if (start != null && start.getValue() >= left) {
+                    // 向左扩展左边界
+                    left = start.getKey();
+                    // 删除原区间
+                    intervals.remove(start.getKey());
+                }
+            }
+
+            // 向右遍历，合并所有与 [left, right) 相交的区间
+            // 相交条件：区间的左端点 ≤ right（因为区间是半开的，等于 right 时不相交）
+            while (entry != null && entry.getKey() <= right) {
+                // 扩展右边界：取当前区间右端点与 right 的较大值
+                right = Math.max(right, entry.getValue());
+                // 删除已合并的区间
+                intervals.remove(entry.getKey());
+                // 继续查找下一个左端点更大的区间
+                entry = intervals.higherEntry(entry.getKey());
+            }
+
+            // 插入合并后的新区间 [left, right)
+            intervals.put(left, right);
+        }
+
+        /**
+         * 查询区间 [left, right) 是否被完全覆盖。
+         *
+         * 核心思路：
+         *   1. 找到可能与 [left, right) 相交的区间。
+         *   2. 检查该区间是否完全覆盖 [left, right)。
+         *
+         * @param left  区间左端点（包含）
+         * @param right 区间右端点（不包含）
+         * @return 如果 [left, right) 被完全覆盖则返回 true，否则返回 false
+         */
+        public boolean queryRange(int left, int right) {
+            // higherEntry(left)：找到左端点严格大于 left 的第一个区间
+            Map.Entry<Integer, Integer> entry = intervals.higherEntry(left);
+
+            // 如果 entry 是第一个区间，说明没有任何区间的左端点 ≤ left，
+            // 即不存在能覆盖 left 的区间，直接返回 false
+            if (entry == intervals.firstEntry()) {
+                return false;
+            }
+
+            // 找到左端点 ≤ left 的最大区间（即可能覆盖 left 的区间）
+            // 如果 entry 为 null，说明所有区间的左端点都 ≤ left，取最后一个区间
+            entry = entry != null ? intervals.lowerEntry(entry.getKey()) : intervals.lastEntry();
+
+            // 判断该区间是否完全覆盖 [left, right)：
+            // 1. entry 不为 null（存在这样的区间）
+            // 2. 该区间的右端点 ≥ right（覆盖到 right）
+            // 由于该区间的左端点 ≤ left（由 lowerEntry 保证），所以只需检查右端点
+            return entry != null && right <= entry.getValue();
+        }
+
+        /**
+         * 删除区间 [left, right)，即将该范围内的所有点标记为"未覆盖"。
+         *
+         * 核心思路：
+         *   1. 找到可能与 [left, right) 相交的已有区间。
+         *   2. 处理左侧可能相交的区间：可能需要截断或拆分。
+         *   3. 向右遍历所有与 [left, right) 相交的区间：完全覆盖的删除，部分覆盖的截断。
+         *
+         * @param left  区间左端点（包含）
+         * @param right 区间右端点（不包含）
+         */
+        public void removeRange(int left, int right) {
+            // higherEntry(left)：找到左端点严格大于 left 的第一个区间
+            Map.Entry<Integer, Integer> entry = intervals.higherEntry(left);
+
+            // 如果 TreeMap 不为空，且找到的 entry 不是第一个区间，
+            // 说明可能存在一个左端点 ≤ left 的区间与 [left, right) 相交
+            if (entry != intervals.firstEntry()) {
+                // start：左端点 ≤ left 的最大区间（即可能与 [left, right) 左侧相交的区间）
+                Map.Entry<Integer, Integer> start = entry != null ? intervals.lowerEntry(entry.getKey()) : intervals.lastEntry();
+
+                // 情况1：start 区间完全包含 [left, right)
+                // 即 start 的右端点 ≥ right，需要将 start 区间拆分为两部分（或保留一部分）
+                if (start != null && start.getValue() >= right) {
+                    // 保存原区间的右端点
+                    int ri = start.getValue();
+
+                    // 处理左半部分：[start.getKey(), left)
+                    if (start.getKey() == left) {
+                        // 如果 start 的左端点恰好等于 left，左半部分为空，直接删除
+                        intervals.remove(start.getKey());
+                    } else {
+                        // 否则保留左半部分 [start.getKey(), left)
+                        intervals.put(start.getKey(), left);
+                    }
+
+                    // 处理右半部分：[right, ri)
+                    if (right != ri) {
+                        // 如果 right < ri，右半部分非空，插入 [right, ri)
+                        intervals.put(right, ri);
+                    }
+
+                    // 删除操作完成，直接返回
+                    return;
+                }
+
+                // 情况2：start 区间与 [left, right) 部分重叠（start 的右端点 > left 但 < right）
+                // 只需保留左半部分 [start.getKey(), left)
+                else if (start != null && start.getValue() > left) {
+                    if (start.getKey() == left) {
+                        // 如果 start 的左端点恰好等于 left，整个区间被删除
+                        intervals.remove(start.getKey());
+                    } else {
+                        // 否则保留左半部分 [start.getKey(), left)
+                        intervals.put(start.getKey(), left);
+                    }
+                }
+            }
+
+            // 向右遍历，处理所有左端点 < right 的区间
+            // 这些区间的左端点 > left（由 higherEntry 保证），且可能与 [left, right) 相交
+            while (entry != null && entry.getKey() < right) {
+                if (entry.getValue() <= right) {
+                    // 情况A：当前区间完全在 [left, right) 内，直接删除
+                    intervals.remove(entry.getKey());
+                    // 继续查找下一个区间
+                    entry = intervals.higherEntry(entry.getKey());
+                } else {
+                    // 情况B：当前区间部分在 [left, right) 内，部分在右侧
+                    // 保留右半部分 [right, entry.getValue())
+                    intervals.put(right, entry.getValue());
+                    // 删除原区间
+                    intervals.remove(entry.getKey());
+                    // 后续区间的左端点都 ≥ 当前区间的左端点 ≥ right，不可能再相交，跳出循环
+                    break;
+                }
+            }
+        }
     }
 
     /**
