@@ -1,6 +1,7 @@
 package pkg0000;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -314,6 +315,68 @@ public class LeetCode0300 {
                 index++;
             }
             return ans;
+        }
+    }
+
+    /**
+     * 355. 设计推特
+     */
+    class Twitter {
+
+        int time;
+        List<int[]>[] users;
+        Set<Integer>[] follows;
+
+        @SuppressWarnings("unchecked")
+        public Twitter() {
+            time = 0;
+            users = new List[501];
+            follows = new Set[501];
+            for (int i = 1; i <= 500; i++) {
+                users[i] = new ArrayList<>();
+                follows[i] = new HashSet<>();
+            }
+        }
+        
+        public void postTweet(int userId, int tweetId) {
+            users[userId].add(0, new int[]{time++, tweetId});
+        }
+        
+        public List<Integer> getNewsFeed(int userId) {
+            List<int[]> list = new ArrayList<>();
+            int size = 0;
+            for (int[] tweet : users[userId]) {
+                list.add(tweet);
+                if (++size >= 10) {
+                    break;
+                }
+            }
+            for (int uid : follows[userId]) {
+                size = 0;
+                for (int[] tweet : users[uid]) {
+                    list.add(tweet);
+                    if (++size >= 10) {
+                        break;
+                    }
+                }
+            }
+            Collections.sort(list, (a, b) -> b[0] - a[0]);
+
+            List<Integer> ans = new ArrayList<>();
+            Iterator<int[]> it = list.iterator();
+            size = 0;
+            while (it.hasNext() && size++ < 10) {
+                ans.add(it.next()[1]);
+            }
+            return ans;
+        }
+        
+        public void follow(int followerId, int followeeId) {
+            follows[followerId].add(followeeId);
+        }
+        
+        public void unfollow(int followerId, int followeeId) {
+            follows[followerId].remove(followeeId);
         }
     }
 
