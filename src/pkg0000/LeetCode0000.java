@@ -10,6 +10,25 @@ import java.util.List;
 public class LeetCode0000 {
 
     /**
+     * 9. 回文数
+     * @param x
+     * @return
+     */
+    public boolean isPalindrome(int x) {
+        if (x < 0) {
+            return false;
+        }
+
+        int y = x, t = 0;
+        while (y > 0) {
+            t *= 10;
+            t += (y % 10);
+            y /= 10;
+        }
+        return t == x;
+    }
+
+    /**
      * 11. 盛最多水的容器
      * @param height
      * @return
