@@ -31,6 +31,41 @@ public class LeetCode1400 {
     }
 
     /**
+     * 1476. 子矩形查询
+     * SubrectangleQueries
+     */
+    class SubrectangleQueries {
+
+        private int[][] rectangle;
+        private List<int[]> history;
+
+        public SubrectangleQueries(int[][] rectangle) {
+            this.rectangle = rectangle;
+            this.history = new ArrayList<>();
+        }
+        
+        public void updateSubrectangle(int row1, int col1, int row2, int col2, int newValue) {
+            if (row1 > row2) {
+                return;
+            }
+            if (col1 > col2) {
+                return;
+            }
+            history.add(new int[]{row1, col1, row2, col2, newValue});
+        }
+        
+        public int getValue(int row, int col) {
+            for (int i = history.size() - 1; i >= 0; i--) {
+                int[] his = history.get(i);
+                if (his[0] <= row && row <= his[2] && his[1] <= col && col <= his[3]) {
+                    return his[4];
+                }
+            }
+            return rectangle[row][col];
+        }
+    }
+
+    /**
      * 1477. 找两个和为目标值且不重叠的子数组
      * @param arr
      * @param target
