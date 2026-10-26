@@ -124,4 +124,15 @@ public class LeetCode2400 {
         // dp[n] 就是整个字符串 s[0...n-1] 的最优解
         return dp[n];
     }
+
+    /**
+     * 2485. 找出中枢整数
+     * @param n
+     * @return
+     */
+    public int pivotInteger(int n) {
+        int t = (n * (n + 1)) >>> 1;
+        int x = (int) Math.sqrt(t);
+        return x * x == t ? x : -1;
+    }
 }
