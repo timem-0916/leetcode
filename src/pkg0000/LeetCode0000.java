@@ -10,6 +10,24 @@ import java.util.List;
 public class LeetCode0000 {
 
     /**
+     * 7. 整数反转
+     * @param x
+     * @return
+     */
+    public int reverse(int x) {
+        int y = 0;
+        while (x != 0) {
+            if (y < Integer.MIN_VALUE / 10 || y > Integer.MAX_VALUE / 10) {
+                return 0;
+            }
+            y *= 10;
+            y += x % 10;
+            x /= 10;
+        }
+        return y;
+    }
+
+    /**
      * 9. 回文数
      * @param x
      * @return
