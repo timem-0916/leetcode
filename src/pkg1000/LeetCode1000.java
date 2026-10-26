@@ -8,6 +8,29 @@ import java.util.TreeSet;
 public class LeetCode1000 {
 
     /**
+     * 1015. 可被 K 整除的最小整数
+     * @param k
+     * @return
+     */
+    public int smallestRepunitDivByK(int k) {
+        // 若 k 能被 2 或 5 整除，则无解，返回 -1
+        if (k % 2 == 0 || k % 5 == 0) {
+            return -1;
+        }
+        // resid为余数，len为数字长度，初始值为1
+        int resid = 1 % k, len = 1;
+        // 当余数为0时退出循环
+        while (resid != 0) {
+            // 计算下一个余数
+            resid = (resid * 10 + 1) % k;
+            // 数字长度+1
+            len++;
+        }
+        // 返回数字 1 的最小重复次数
+        return len;
+    }
+
+    /**
      * 1021. 删除最外层的括号
      * @param s
      * @return
