@@ -14,6 +14,25 @@ public class LeetCode1500 {
     private static final int MOD = 1_000_000_007;
 
     /**
+     * 1502. 判断能否形成等差数列
+     * @param arr
+     * @return
+     */
+    public boolean canMakeArithmeticProgression(int[] arr) {
+        if (arr == null || arr.length < 2) {
+            return false;
+        }
+        Arrays.sort(arr);
+        int n = arr.length, d = arr[1] - arr[0];
+        for (int i = 2; i < n; i++) {
+            if (arr[i] - arr[i - 1] != d) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
      * 1520. 最多的不重叠子字符串
      * @param s
      * @return
