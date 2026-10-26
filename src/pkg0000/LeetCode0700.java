@@ -1,6 +1,8 @@
 package pkg0000;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -325,6 +327,31 @@ public class LeetCode0700 {
             // 循环结束说明所有前缀都存在，最后确认当前节点确实是单词结尾
             return node != null && node.isEnd;
         }
+    }
+
+    /**
+     * 728. 自除数
+     */
+    public List<Integer> selfDividingNumbers(int left, int right) {
+        List<Integer> ans = new ArrayList<>();
+        for (int i = left; i <= right; i++) {
+            if (isSelfDividingNumbers(i)) {
+                ans.add(i);
+            }
+        }
+        return ans;
+    }
+
+    private boolean isSelfDividingNumbers(int num) {
+        int x = num;
+        while (x > 0) {
+            int m = x % 10;
+            if (m == 0 || num % m != 0) {
+                return false;
+            }
+            x /= 10;
+        }
+        return true;
     }
 
     /**
