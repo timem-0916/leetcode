@@ -89,6 +89,27 @@ public class LeetCode0200 {
     }
 
     /**
+     * 263. 丑数
+     * @param n
+     * @return
+     */
+    public boolean isUgly(int n) {
+        if (n < 1) {
+            return false;
+        }
+        while (n % 2 == 0) {
+            n /= 2;
+        }
+        while (n % 3 == 0) {
+            n /= 3;
+        }
+        while (n % 5 == 0) {
+            n /= 5;
+        }
+        return n == 1;
+    }
+
+    /**
      * 265. 粉刷房子 II（动态规划：空间优化）
      * @param costs
      * @return
