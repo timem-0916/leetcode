@@ -1,5 +1,6 @@
 package pkg0000;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -36,6 +37,47 @@ public class LeetCode0100 {
         }
 
         return (int) dp[n][m];
+    }
+
+    /**
+     * 118. 杨辉三角
+     * @param numRows
+     * @return
+     */
+    public List<List<Integer>> generate(int numRows) {
+        // 最终结果列表，用于存放杨辉三角的每一行
+        List<List<Integer>> ans = new ArrayList<>();
+        
+        // 一维滚动数组，用于动态规划计算当前行的数值。
+        // 杨辉三角第 i 行（0-based）有 i+1 个元素，数组长度设为 numRows 足够容纳最长的一行。
+        int[] dp = new int[numRows];
+
+        // 外层循环：逐行生成杨辉三角，i 代表当前行的行号（从 0 开始）
+        for (int i = 0; i < numRows; i++) {
+            // 用于暂存当前行计算出的所有元素，最后加入结果集
+            List<Integer> list = new ArrayList<>();
+
+            // 内层循环：计算当前行的每一个元素。
+            // 关键点：这里采用【从右向左】（j 从 i 递减到 0）的遍历顺序。
+            // 这样做是为了在计算 dp[j] 时，dp[j-1] 仍然保留着上一行（i-1行）的旧值，
+            // 从而避免数据被提前覆盖，实现空间优化的滚动数组。
+            for (int j = i; j >= 0; j--) {
+                // 杨辉三角的边界条件：每一行的第一个（j==0）和最后一个（j==i）元素永远是 1
+                if (j == 0 || j == i) {
+                    dp[j] = 1;
+                } else {
+                    // 核心状态转移方程：当前元素 = 上一行左上方元素 + 上一行正上方元素
+                    // 因为是从右向左遍历，此时 dp[j-1] 还是上一行的值，dp[j] 也是上一行的值
+                    dp[j] = dp[j - 1] + dp[j];
+                }
+                // 将计算好的当前元素加入当前行的列表
+                list.add(dp[j]);
+            }
+            // 将当前行列表添加到最终结果中
+            ans.add(list);
+        }
+
+        return ans;
     }
 
     /**
