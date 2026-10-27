@@ -1,5 +1,7 @@
 package pkg3000;
 
+import java.util.Arrays;
+
 public class LeetCode3900 {
     /**
      * 3903. 最小稳定下标 I
@@ -119,5 +121,25 @@ public class LeetCode3900 {
         //   方案1：循环右移 n - start 次，把 0 移到下标 0 后整体反转
         //   方案2：循环左移 start 次后再做两次额外操作
         return Math.min(n - start, start + 2);
+    }
+
+    /**
+     * 3963. 构造恰好一条路径的网格
+     * @param m
+     * @param n
+     * @return
+     */
+    public String[] createGrid(int m, int n) {
+        String[] ans = new String[m];
+        char[] buff = new char[n];
+        Arrays.fill(buff, '.');
+        ans[0] = String.valueOf(buff);
+        Arrays.fill(buff, '#');
+        buff[n - 1] = '.';
+        String next = String.valueOf(buff);
+        for (int i = 1; i < m; i++) {
+            ans[i] = next;
+        }
+        return ans;
     }
 }
