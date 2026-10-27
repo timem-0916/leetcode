@@ -2,6 +2,7 @@ package pkg0000;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Deque;
 import java.util.LinkedList;
 import java.util.List;
@@ -230,6 +231,73 @@ public class LeetCode0000 {
         }
 
         return maxAns;
+    }
+
+    /**
+     * 60. 排列序列
+     * 
+     * 获取 [1, n] 这 n 个数字组成的排列序列中的第 k 个排列。
+     *
+     * 核心思路（数学法 / 逐位确定）：
+     *   1. 固定前缀后，剩余 (n - i) 个数字共有 (n - i)! 种排列。
+     *   2. 我们可以通过 (k - 1) / (n - i)! 直接计算出当前位应该选取剩余可用数字中的第几个，
+     *      从而避免生成整个序列，实现 O(n^2) 的时间复杂度。
+     * @param n
+     * @param k
+     * @return
+     */
+    public String getPermutation(int n, int k) {
+        // ========== 第一步：预处理阶乘数组 ==========
+        // factorial[i] 表示 i 的阶乘，即 i!
+        // 例如 factorial[3] = 3! = 6
+        int[] factorial = new int[n];
+        factorial[0] = 1;
+        for (int i = 1; i < n; i++) {
+            factorial[i] = factorial[i - 1] * i;
+        }
+
+        // ========== 第二步：将 k 转换为 0 开始的索引，方便整除运算 ==========
+        // 题目中的 k 是 1-based（第 k 个），我们需要转换为 0-based 索引。
+        // 例如求第 1 个排列时，对应索引 0。
+        k--;
+
+        // 使用 StringBuffer 拼接最终的结果字符串
+        StringBuilder ans = new StringBuilder();
+
+        // valid 数组用于标记数字是否可用（类似哈希表）：
+        // valid[i] = 1 表示数字 i 还没有被使用，= 0 表示已经被使用。
+        // 初始时，1 到 n 都是可用的。
+        int[] valid = new int[n + 1];
+        Arrays.fill(valid, 1);
+
+        // ========== 第三步：逐位确定排列中的数字 ==========
+        // 从左到右依次确定第 1 位、第 2 位 ... 直到第 n 位
+        for (int i = 1; i <= n; i++) {
+            // 计算当前位应该选取【剩余可用数字】中的第几个（1-based）。
+            // 剩余 (n - i) 个数字共有 (n - i)! 种排法。
+            // 用当前索引 k 除以 (n - i)! 的商，就可以直接跳过那些排法块。
+            int order = k / factorial[n - i] + 1;
+
+            // 在 valid 数组中寻找第 order 个值为 1（未使用）的数字 j
+            for (int j = 1; j <= n; j++) {
+                // 遇到未使用的数字就减 1
+                order -= valid[j];
+                // 减到 0 时，找到了目标数字 j
+                if (order == 0) {
+                    // 将该数字追加到结果中
+                    ans.append(j);
+                    // 标记该数字已被使用
+                    valid[j] = 0;
+                    // 跳出内层循环，处理下一位
+                    break;
+                }
+            }
+
+            // 更新 k：取余数，表示跳过当前块的整块排法后，在剩余块内的偏移量。
+            k %= factorial[n - i];
+        }
+
+        return ans.toString();
     }
 
     /**
