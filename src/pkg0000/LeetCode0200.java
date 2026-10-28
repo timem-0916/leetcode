@@ -3,6 +3,39 @@ package pkg0000;
 public class LeetCode0200 {
 
     /**
+     * 204. 计数质数
+     * @param n
+     * @return
+     */
+    public int countPrimes(int n) {
+        // 标记数组：notPrime[i] 为 true 表示数字 i 不是质数（即已被筛掉）。
+        // 初始时所有元素默认为 false，表示暂时认为 0 到 n-1 都是质数。
+        boolean[] notPrime = new boolean[n];
+
+        // 用于统计小于 n 的质数个数
+        int cnt = 0;
+
+        // 从最小的质数 2 开始，逐个检查到 n-1
+        for (int i = 2; i < n; i++) {
+            // 如果 notPrime[i] 为 false，说明 i 没有被之前的数筛掉，因此 i 是质数
+            if (!notPrime[i]) {
+                // 质数计数加 1
+                cnt++;
+
+                // 埃拉托斯特尼筛法（埃氏筛）核心步骤：
+                // 将当前质数 i 的所有倍数标记为非质数。
+                // 从 2*i 开始，依次标记 3*i, 4*i, ... 直到超出范围 n
+                for (int j = 2; i * j < n; j++) {
+                    // 标记 i*j 为合数（非质数）
+                    notPrime[i * j] = true;
+                }
+            }
+        }
+        
+        return cnt;
+    }
+
+    /**
      * 221. 最大正方形
      * @param matrix
      * @return
