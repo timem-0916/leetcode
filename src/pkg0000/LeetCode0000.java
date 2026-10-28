@@ -356,6 +356,80 @@ public class LeetCode0000 {
     }
 
     /**
+     * 77. 组合
+     * 
+     * C(n, k) = C(n - 1, k) + C(n - 1, k - 1)
+     * 主方法：生成从 1 到 n 中选取 k 个数的所有组合。
+     *
+     * 算法思路：
+     *   使用回溯法（深度优先搜索 DFS）遍历所有可能的选取情况。
+     *   对于每个数字 i（从 1 到 n），都有两种选择：选入当前组合，或不选入当前组合。
+     *   通过递归探索这两种分支，并在过程中加入剪枝条件，提前终止不可能产生有效解的分支。
+     *
+     * @param n 数字范围的上限（1 到 n）
+     * @param k 每个组合需要包含的数字个数
+     * @return 所有满足条件的组合列表
+     */
+    public List<List<Integer>> combine(int n, int k) {
+        // 用于存放所有最终符合条件的组合结果
+        List<List<Integer>> results = new ArrayList<>();
+        // 用于在递归过程中暂存当前正在构建的组合路径
+        List<Integer> list = new ArrayList<>();
+
+        // 启动深度优先搜索，从数字 1 开始遍历
+        combineDfs(results, list, 1, n, k);
+        return results;
+    }
+
+    /**
+     * 深度优先搜索（回溯）核心方法。
+     *
+     * @param results 最终结果集，收集所有满足长度为 k 的组合
+     * @param list    当前递归路径上的组合（动态变化，通过添加和删除元素实现回溯）
+     * @param i       当前正在考虑的数字（取值范围 1 到 n）
+     * @param n       数字范围上限
+     * @param k       目标组合长度
+     */
+    private void combineDfs(List<List<Integer>> results, List<Integer> list, int i, int n, int k) {
+        // ========== 递归终止条件与剪枝 ==========
+
+        // 剪枝 1：如果当前组合长度已经达到 k，说明已经找到一个有效解，
+        // 直接加入结果集并返回，无需继续向后遍历（因为再添加数字会超过 k）。
+        if (list.size() == k) {
+            // 注意：必须 new 一个新的 ArrayList 加入，否则后续回溯修改 list 会影响结果
+            results.add(new ArrayList<>(list));
+            return;
+        }
+
+        // 剪枝 2：如果当前已经遍历完所有数字（i 到达 n+1）
+        if (i == n + 1) {
+            return;
+        }
+
+        // 剪枝 3：可行性剪枝（核心优化）。
+        // 计算“当前已选数字个数” + “剩余可选数字个数”是否还足够凑齐 k 个。
+        // 剩余可选数字个数 = n - i + 1（从当前 i 到 n 共有这么多数字）。
+        // 如果即使把剩下的数字全选上也不够 k 个，说明当前分支不可能产生有效解，直接剪枝返回。
+        if (n + 1 - i + list.size() < k) {
+            return;
+        }
+
+        // ========== 递归探索两个分支 ==========
+
+        // 分支 1：选择当前数字 i
+        // 将 i 加入当前组合
+        list.add(i);
+        // 递归处理下一个数字 i+1
+        combineDfs(results, list, i + 1, n, k);
+        // 回溯：撤销选择，将 i 从组合中移除，恢复现场
+        list.removeLast();
+
+        // 分支 2：不选择当前数字 i
+        // 此时 list 保持不变，直接递归处理下一个数字 i+1
+        combineDfs(results, list, i + 1, n, k);
+    }
+
+    /**
      * 97. 交错字符串
      * @param s1
      * @param s2
