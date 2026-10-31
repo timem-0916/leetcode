@@ -1,6 +1,9 @@
 package pkg3000;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
+import java.util.PriorityQueue;
 
 public class LeetCode3900 {
     /**
@@ -141,5 +144,102 @@ public class LeetCode3900 {
             ans[i] = next;
         }
         return ans;
+    }
+
+    /**
+     * 3970. 最多 K 个连续相同字符的最短路径
+     * 
+     * 求从节点 0 到节点 n-1 的最短路径长度，约束条件为：
+     * 路径上不能有连续超过 k 个相同字母的节点。
+     *
+     * 算法思路：
+     *   在经典 Dijkstra 最短路的基础上，扩展状态维度：
+     *   状态为 (节点, 当前连续相同字母的个数)，即 dis[x][cnt] 表示到达节点 x 且末尾连续相同字母数为 cnt 时的最短距离。
+     *   这样可以在状态转移时检查连续相同字母是否超过 k。
+     *
+     * @param n      节点数（节点编号 0 到 n-1）
+     * @param edges  边的列表，每条边为 [起点, 终点, 权重]
+     * @param labels 每个节点的字母标签（labels[i] 对应节点 i）
+     * @param k      允许的最大连续相同字母个数
+     * @return 从节点 0 到节点 n-1 的最短路径长度；若不可达则返回 -1
+     */
+    @SuppressWarnings("unchecked")
+    public int shortestPath(int n, int[][] edges, String labels, int k) {
+        // ========== 第一步：建图（邻接表）==========
+        // 每个元素为 ArrayList<int[]>，int[] 为 {邻居节点, 边权重}
+        List<int[]>[] g = new ArrayList[n];
+        Arrays.setAll(g, i -> new ArrayList<>());
+        for (int[] e : edges) {
+            // 有向边：e[0] -> e[1]，权重为 e[2]
+            g[e[0]].add(new int[]{e[1], e[2]});
+        }
+
+        // ========== 第二步：初始化距离数组 ==========
+        // dis[x][cnt]：到达节点 x 且末尾连续相同字母数为 cnt 时的最短距离
+        // 第二维大小为 k+1，因为连续个数最多为 k（超过 k 的状态会被剪枝）
+        long[][] dis = new long[n][k + 1];
+        for (long[] row : dis) {
+            // 初始化为无穷大
+            Arrays.fill(row, Integer.MAX_VALUE);
+        }
+
+        // ========== 第三步：初始化优先队列（小根堆）==========
+        // 堆中元素为 long[] {最短距离, 节点编号, 末尾连续相同字母个数}
+        // 按距离升序排列，保证 Dijkstra 每次取出当前最短的状态
+        PriorityQueue<long[]> pq = new PriorityQueue<>((a, b) -> Long.compare(a[0], b[0]));
+
+        // 起点：节点 0，距离为 0，连续相同字母数为 1（自身算 1 个）
+        dis[0][1] = 0;
+        pq.offer(new long[]{0, 0, 1});
+
+        // ========== 第四步：Dijkstra 主循环 ==========
+        while (!pq.isEmpty()) {
+            long[] cur = pq.poll();
+            // 当前状态的最短距离
+            long d = cur[0];
+            // 当前节点编号
+            int x = (int) cur[1];
+            // 到达当前节点时，末尾连续相同字母的个数
+            int cnt = (int) cur[2];
+
+            // 剪枝：如果当前距离已经大于记录的最短距离，说明是过期状态，跳过
+            if (d > dis[x][cnt]) {
+                continue;
+            }
+
+            // 若到达终点，直接返回最短距离（Dijkstra 保证首次到达终点时即为最短路）
+            if (x == n - 1) {
+                return (int) d;
+            }
+
+            // 遍历当前节点的所有出边
+            for (int[] e : g[x]) {
+                // 邻居节点
+                int y = e[0];
+                // 边权重
+                int w = e[1];
+
+                // 计算到达邻居节点 y 时的新连续相同字母数：
+                // 如果当前节点 x 和邻居节点 y 的字母相同，则连续数 +1；否则重置为 1
+                int newCnt = labels.charAt(x) == labels.charAt(y) ? cnt + 1 : 1;
+
+                // 约束检查：如果连续相同字母数超过 k，则该状态非法，跳过
+                if (newCnt > k) {
+                    continue;
+                }
+
+                // 松弛操作：计算新距离
+                long nd = d + w;
+                if (nd < dis[y][newCnt]) {
+                    // 更新最短距离
+                    dis[y][newCnt] = nd;
+                    // 将新状态加入优先队列
+                    pq.offer(new long[]{nd, y, newCnt});
+                }
+            }
+        }
+
+        // 若循环结束仍未到达终点，说明不可达
+        return -1;
     }
 }
