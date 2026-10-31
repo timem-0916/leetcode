@@ -1,6 +1,7 @@
 package pkg0000;
 
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -269,6 +270,19 @@ public class LeetCode0400 {
         }
 
         return root;
+    }
+
+    /**
+     * 453. 最小操作次数使数组元素相等
+     * @param nums
+     * @return
+     */
+    public int minMoves(int[] nums) {
+        int min = Arrays.stream(nums).min().getAsInt(), ans = 0;
+        for (int num : nums) {
+            ans += num - min;
+        }
+        return ans;
     }
 
     /**
