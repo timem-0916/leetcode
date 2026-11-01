@@ -254,4 +254,48 @@ public class LeetCode0800 {
         }
         return dp[0][n - 1] > 0;
     }
+
+    /**
+     * 883. 三维形体投影面积
+     * @param grid
+     * @return
+     */
+    public int projectionArea(int[][] grid) {
+        // 获取网格的边长 n（题目保证 grid 为 n x n 的正方形网格）
+        // xyArea：俯视图（从 z 轴正方向往下看）的投影面积
+        // yzArea：侧视图（从 x 轴正方向往左看）的投影面积
+        // xzArea：正视图（从 y 轴正方向往前看）的投影面积
+        int n = grid.length, xyArea = 0, yzArea = 0, xzArea = 0;
+
+        // 外层循环遍历每一行/列索引 i
+        for (int i = 0; i < n; i++) {
+            // yzHeight：在第 i 列中，所有行上的最大高度（用于计算 yz 平面投影）
+            // xzHeight：在第 i 行中，所有列上的最大高度（用于计算 xz 平面投影）
+            int yzHeight = 0, xzHeight = 0;
+
+            // 内层循环遍历每一列/行索引 j
+            for (int j = 0; j < n; j++) {
+                // 俯视图投影：只要 grid[i][j] > 0，说明该位置有立方体，
+                // 从上往下看会贡献 1 个单位的面积（无论堆多高，俯视只看到一个 1x1 的正方形）
+                xyArea += grid[i][j] > 0 ? 1 : 0;
+
+                // 侧视图（yz 平面）投影：从 x 轴方向看过去，
+                // 对于第 i 列，看到的是该列中所有行的最大高度
+                // grid[j][i] 表示第 j 行、第 i 列的高度（注意行列互换，按列取最大值）
+                yzHeight = Math.max(yzHeight, grid[j][i]);
+
+                // 正视图（xz 平面）投影：从 y 轴方向看过去，
+                // 对于第 i 行，看到的是该行中所有列的最大高度
+                // grid[i][j] 表示第 i 行、第 j 列的高度（按行取最大值）
+                xzHeight = Math.max(xzHeight, grid[i][j]);
+            }
+
+            // 内层循环结束后，累加第 i 列的侧视投影面积和第 i 行的正视投影面积
+            yzArea += yzHeight;
+            xzArea += xzHeight;
+        }
+
+        // 三个投影面的面积之和即为最终答案
+        return xyArea + yzArea + xzArea;
+    }
 }
