@@ -12,34 +12,63 @@ public class LeetCode0800 {
 
     /**
      * 812. 最大三角形面积
-     * @param points
-     * @return
+     * 思路：暴力枚举所有三点组合，计算每个三角形的面积，取最大值。
+     * 时间复杂度：O(n^3)，其中 n 为点的数量。
+     * 由于题目约束 n <= 50，O(n^3) 完全可接受。
+     *
+     * @param points 二维平面上的点集，points[i] = [xi, yi]
+     * @return 能组成的最大三角形面积
      */
     public double largestTriangleArea(int[][] points) {
+        // 点的总数
         int n = points.length;
+        // 记录遍历过程中遇到的最大面积
         double maxArea = 0.0;
+
+        // 三重循环枚举所有不重复的三点组合 (i, j, k)
+        // i < j < k 保证每个组合只被计算一次，避免重复
         for (int i = 0; i < n; i++) {
             for (int j = i + 1; j < n; j++) {
                 for (int k = j + 1; k < n; k++) {
-                    maxArea = Math.max(maxArea, triangleArea(points[i][0], points[i][1], points[j][0], points[j][1], points[k][0], points[k][1]));
+                    // 计算当前三点组成的三角形面积，并更新最大值
+                    maxArea = Math.max(maxArea, triangleArea(
+                        points[i][0], points[i][1], // 第 i 个点的 (x, y)
+                        points[j][0], points[j][1], // 第 j 个点的 (x, y)
+                        points[k][0], points[k][1]  // 第 k 个点的 (x, y)
+                    ));
                 }
             }
         }
+
         return maxArea;
     }
 
     /**
-     * 根据三个顶点坐标，求三角形面积
-     * @param x1
-     * @param y1
-     * @param x2
-     * @param y2
-     * @param x3
-     * @param y3
-     * @return
+     * 根据三个顶点的坐标，利用「鞋带公式」（Shoelace Formula）求三角形面积。
+     *
+     * 公式推导：
+     *   对于顶点 (x1,y1), (x2,y2), (x3,y3)，三角形面积等于
+     *   S = 1/2 * |x1(y2 - y3) + x2(y3 - y1) + x3(y1 - y2)|
+     *   展开后等价于：
+     *   S = 0.5 * |x1*y2 + x2*y3 + x3*y1 - x1*y3 - x2*y1 - x3*y2|
+     *
+     * 几何意义：该公式本质上是两个向量叉积的绝对值的一半，
+     * 即 S = 1/2 * |AB × AC|，其中 AB、AC 为从同一点出发的两条边向量。
+     *
+     * @param x1 第一个点的 x 坐标
+     * @param y1 第一个点的 y 坐标
+     * @param x2 第二个点的 x 坐标
+     * @param y2 第二个点的 y 坐标
+     * @param x3 第三个点的 x 坐标
+     * @param y3 第三个点的 y 坐标
+     * @return 三角形的面积（若三点共线则返回 0）
      */
     private double triangleArea(int x1, int y1, int x2, int y2, int x3, int y3) {
-        return 0.5 * Math.abs(x1 * y2 + x2 * y3 + x3 * y1 - x1 * y3 - x2 * y1 - x3 * y2);
+        // 鞋带公式：交叉相乘再相减，取绝对值后乘以 0.5
+        return 0.5 * Math.abs(
+              x1 * y2 + x2 * y3 + x3 * y1 // 正向交叉乘积之和
+            - x1 * y3 - x2 * y1 - x3 * y2 // 反向交叉乘积之和
+        );
     }
 
     /**
