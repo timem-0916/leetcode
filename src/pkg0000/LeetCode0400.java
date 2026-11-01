@@ -286,6 +286,20 @@ public class LeetCode0400 {
     }
 
     /**
+     * 462. 最小操作次数使数组元素相等 II
+     * @param nums
+     * @return
+     */
+    public int minMoves2(int[] nums) {
+        Arrays.sort(nums);
+        int n = nums.length, ans = 0;
+        for (int i = 0; i < n; i++) {
+            ans += Math.abs(nums[i] - nums[n / 2]);
+        }
+        return ans;
+    }
+
+    /**
      * 494. 目标和
      * @param nums
      * @param target
